@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Memory Vault</title>
+  <!--
+    MD schema (see vault.md):
+      ## Category: <name>
+      ### Topic: <name>
+      - **YYYY-MM-DD** — summary
+        - optional detail lines
+  -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1a2040;
+      background: linear-gradient(135deg, #bdd8f2 0%, #cce9a5 100%) fixed;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 10px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #dde8f0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0e1c3d;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 1px 6px rgba(14,28,61,0.08);
+    }
+    header span { flex: 1; }
+    #about-btn, #export-btn, #import-btn {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+      background: #5c4daa;
+      border: none;
+      border-radius: 20px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+      margin-left: 8px;
+    }
+    #about-btn:hover, #export-btn:hover, #import-btn:hover {
+      background: #4a3d8a;
+    }
+
+    /* ── About modal ────────────────────────────────────── */
+    #about-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #about-overlay.open { display: flex; }
+
+    #about-modal {
+      background: #fff;
+      border-radius: 12px;
+      max-width: 580px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      animation: modal-in 0.18s ease;
+    }
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid #f0f0f2;
+    }
+    .modal-header-text { flex: 1; }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #111;
+    }
+    .modal-subtitle {
+      font-size: 0.82rem;
+      color: #888;
+      margin-top: 2px;
+    }
+    #about-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #aaa;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      margin-left: 12px;
+    }
+    #about-close:hover { background: #f5f5f5; color: #555; }
+
+    .modal-body { padding: 20px 24px 28px; }
+
+    .about-intro {
+      font-size: 0.95rem;
+      color: #333;
+      line-height: 1.7;
+      margin-bottom: 22px;
+    }
+
+    .about-section { margin-bottom: 20px; }
+    .about-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #5c4daa;
+      margin-bottom: 10px;
+    }
+    .about-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .about-card {
+      background: #f8f9ff;
+      border: 1px solid #e8eaf6;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .about-card-icon { font-size: 1.2rem; margin-bottom: 4px; }
+    .about-card-title { font-size: 0.82rem; font-weight: 600; color: #222; }
+    .about-card-desc  { font-size: 0.78rem; color: #666; line-height: 1.5; margin-top: 2px; }
+
+    .about-future {
+      background: #fffdf0;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .about-future li {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.6;
+      margin-left: 16px;
+    }
+    .about-future li + li { margin-top: 4px; }
+
+    @media (max-width: 480px) {
+      .about-cards { grid-template-columns: 1fr; }
+      #about-modal { border-radius: 10px; }
+    }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Left panel ─────────────────────────────────────── */
+    #topic-list {
+      width: 30%;
+      min-width: 200px;
+      max-width: 300px;
+      background: #fff;
+      border-right: 1px solid #dde8f0;
+      overflow-y: auto;
+      padding: 0 0 16px;
+    }
+
+    #topic-list-hd {
+      display: flex;
+      align-items: center;
+      padding: 10px 8px 8px 16px;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 1;
+      border-bottom: 1px solid #eef2f6;
+    }
+    #topic-list-hd h2 {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #8899bb;
+      flex: 1;
+    }
+
+    /* ── Drag and drop ──────────────────────────────────────*/
+    .drag-handle {
+      cursor: grab;
+      color: transparent;  /* hidden until row hover */
+      font-size: 0.8rem;
+      padding: 0 4px;
+      flex-shrink: 0;
+      user-select: none;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+    .topic-row:hover .drag-handle,
+    .topic-section:hover > .topic-expandable-hd .drag-handle,
+    .subtopic-row:hover .drag-handle,
+    .category-header:hover .drag-handle { color: #bbb; }
+    .drag-handle:hover { color: #888 !important; }
+    .drag-handle:active { cursor: grabbing; }
+    .dragging { opacity: 0.3; pointer-events: none; }
+    .drop-line {
+      height: 2px;
+      background: #5c4daa;
+      border-radius: 2px;
+      margin: 1px 10px;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    /* ── Add buttons ─────────────────────────────────────── */
+    .icon-btn.add { color: #27ae60; }
+    .icon-btn.add:hover { background: #eafaf1; border-color: #27ae60; }
+
+    /* Inline add-row (left panel) */
+    .inline-add-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 8px 6px 14px;
+      background: #f4f8fc;
+      border-top: 1px solid #dde8f0;
+      border-bottom: 1px solid #dde8f0;
+    }
+    .inline-add-input {
+      flex: 1;
+      border: 1px solid #c5cae9;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #222;
+      outline: none;
+      background: #fff;
+      min-width: 0;
+    }
+    .inline-add-input:focus { border-color: #5c4daa; box-shadow: 0 0 0 2px #ece8ff; }
+
+    /* Add entry card (right panel) */
+    .add-entry-card {
+      background: #fff;
+      border: 1px solid #c8d8ea;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Category section */
+    .category-section {
+      margin-top: 4px;
+    }
+    .category-section + .category-section {
+      border-top: 1px solid #eef2f6;
+      margin-top: 6px;
+      padding-top: 6px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      padding: 5px 8px 4px 10px;
+      user-select: none;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 0 4px;
+    }
+    .category-header:hover { background: #eef3fa; }
+
+    /* Fold chevron */
+    .cat-chevron {
+      font-size: 0.6rem;
+      color: #8899bb;
+      margin-right: 6px;
+      transition: transform 0.18s;
+      flex-shrink: 0;
+    }
+    .category-section.collapsed .cat-chevron { transform: rotate(-90deg); }
+
+    /* Topics container — animates open/closed */
+    .category-topics {
+      overflow: hidden;
+      transition: max-height 0.22s ease, opacity 0.18s ease;
+      max-height: 600px;
+      opacity: 1;
+    }
+    .category-section.collapsed .category-topics {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .category-name {
+      font-size: 0.67rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #0e1c3d;
+      flex: 1;
+    }
+
+    .cat-rename-input {
+      flex: 1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: inherit;
+      color: #0e1c3d;
+      border: none;
+      border-bottom: 2px solid #5c4daa;
+      background: #eef3fa;
+      padding: 2px 4px;
+      outline: none;
+      min-width: 0;
+    }
+
+    /* Topic rows */
+    .topic-row { display: flex; align-items: center; }
+
+    .topic-item {
+      flex: 1;
+      text-align: left;
+      background: none;
+      border: none;
+      border-left: 3px solid transparent;
+      padding: 6px 6px 6px 26px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: #3d3d55;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .topic-item:hover { background: #e8f1fa; color: #0e1c3d; }
+    .topic-item:focus-visible { outline: 2px solid #5c4daa; outline-offset: -2px; }
+    .topic-item.active {
+      background: linear-gradient(90deg, #e4eefa 0%, #ece8ff 100%);
+      border-left-color: #5c4daa;
+      color: #0e1c3d;
+      font-weight: 600;
+    }
+
+    .topic-rename-input {
+      flex: 1;
+      border: none;
+      border-bottom: 2px solid #5c4daa;
+      background: #eef3fa;
+      font-size: 0.875rem;
+      font-family: inherit;
+      padding: 7px 6px 7px 26px;
+      color: #0e1c3d;
+      outline: none;
+      min-width: 0;
+    }
+
+    /* ── Topic folder section (topic with subtopics) ────── */
+    .topic-expandable-hd {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px 5px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .topic-expandable-hd:hover { background: #eef3fa; }
+
+    .topic-chevron {
+      font-size: 0.6rem;
+      color: #8899bb;
+      margin-right: 5px;
+      flex-shrink: 0;
+      transition: transform 0.18s;
+    }
+    .topic-section.collapsed .topic-chevron { transform: rotate(-90deg); }
+
+    .topic-folder-name {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0e1c3d;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Subtopics container — tree connector line on left */
+    .topic-subtopics {
+      overflow: hidden;
+      max-height: 600px;
+      opacity: 1;
+      transition: max-height 0.22s ease, opacity 0.18s ease;
+      margin-left: 28px;
+      border-left: 2px solid #c8ddf0;
+      padding-bottom: 4px;
+    }
+    .topic-section.collapsed .topic-subtopics {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* ── Subtopic rows ───────────────────────────────────── */
+    .subtopic-row { display: flex; align-items: center; }
+
+    .subtopic-item {
+      flex: 1;
+      text-align: left;
+      background: none;
+      border: none;
+      border-left: 3px solid transparent;
+      padding: 5px 6px 5px 14px;
+      cursor: pointer;
+      font-size: 0.83rem;
+      color: #5a5280;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .subtopic-item:hover { background: #e8f1fa; color: #0e1c3d; }
+    .subtopic-item:focus-visible { outline: 2px solid #5c4daa; outline-offset: -2px; }
+    .subtopic-item.active {
+      background: linear-gradient(90deg, #e4eefa 0%, #ece8ff 100%);
+      border-left-color: #5c4daa;
+      color: #0e1c3d;
+      font-weight: 600;
+    }
+
+    /* Row / category action buttons — revealed on hover */
+    .row-actions, .category-actions {
+      display: flex;
+      gap: 2px;
+      padding-right: 8px;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .topic-row:hover .row-actions,
+    .subtopic-row:hover .row-actions,
+    .topic-expandable-hd:hover .row-actions,
+    .row-actions:focus-within,
+    .category-header:hover .category-actions,
+    .category-actions:focus-within { opacity: 1; }
+
+    /* ── Shared icon buttons ─────────────────────────────── */
+    .icon-btn {
+      background: none;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      line-height: 1.5;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+      flex-shrink: 0;
+    }
+    .icon-btn.edit   { color: #5c4daa; }
+    .icon-btn.edit:hover   { background: #ece8ff; border-color: #5c4daa; }
+    .icon-btn.del    { color: #c0392b; }
+    .icon-btn.del:hover    { background: #ffeaea; border-color: #c0392b; }
+    .icon-btn.save   { color: #27ae60; }
+    .icon-btn.save:hover   { background: #eafaf1; border-color: #27ae60; }
+    .icon-btn.cancel { color: #888; }
+    .icon-btn.cancel:hover { background: #f5f5f5; }
+
+    /* ── Right panel ─────────────────────────────────────── */
+    #content-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+      background: transparent;
+    }
+    #content-panel .placeholder {
+      color: #aaa;
+      margin-top: 60px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .panel-title h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0e1c3d;
+      flex: 1;
+    }
+    .panel-title-input {
+      flex: 1;
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-family: inherit;
+      color: #0e1c3d;
+      border: none;
+      border-bottom: 2px solid #5c4daa;
+      background: rgba(255,255,255,0.7);
+      padding: 2px 8px;
+      outline: none;
+      border-radius: 2px;
+    }
+    .panel-category-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5c4daa;
+      margin-bottom: 18px;
+    }
+
+    /* ── Entry card ─────────────────────────────────────── */
+    .entry {
+      background: #fff;
+      border: 1px solid #dde8f0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 1px 4px rgba(74,108,247,0.07);
+    }
+    .entry-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .entry-header:hover { background: #fafafa; }
+
+    .entry-date {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fff;
+      background: #0e1c3d;
+      white-space: nowrap;
+      padding: 2px 10px;
+      border-radius: 20px;
+      min-width: 96px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+    .entry-summary { flex: 1; font-size: 0.9rem; color: #333; }
+
+    .chevron {
+      font-size: 0.7rem;
+      color: #aaa;
+      transition: transform 0.18s;
+      flex-shrink: 0;
+    }
+    .entry.expanded .chevron { transform: rotate(180deg); }
+
+    .entry-actions {
+      display: flex;
+      gap: 3px;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .entry-header:hover .entry-actions,
+    .entry-actions:focus-within { opacity: 1; }
+
+    .entry-detail {
+      display: none;
+      padding: 0 16px 14px 112px;
+      font-size: 0.875rem;
+      color: #444;
+      border-top: 1px solid #f0f0f0;
+      white-space: pre-wrap;
+    }
+    .entry.expanded .entry-detail { display: block; }
+
+    /* ── Entry edit form ────────────────────────────────── */
+    .entry-edit-form {
+      padding: 12px 16px 14px;
+      border-top: 1px solid #e8eef4;
+      background: #f7fafd;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .entry:not(.editing) .entry-edit-form { display: none; }
+    .entry.editing .entry-header { cursor: default; }
+    .entry.editing .entry-actions { display: none; }
+
+    .edit-row { display: flex; align-items: flex-start; gap: 10px; }
+    .edit-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      padding-top: 7px;
+      min-width: 52px;
+    }
+    .edit-summary-input {
+      flex: 1;
+      border: 1px solid #c5cae9;
+      border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #222;
+      outline: none;
+    }
+    .edit-summary-input:focus { border-color: #5c4daa; box-shadow: 0 0 0 2px #ece8ff; }
+    .edit-detail-input {
+      flex: 1;
+      border: 1px solid #c5cae9;
+      border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #444;
+      outline: none;
+      resize: vertical;
+      min-height: 72px;
+    }
+    .edit-detail-input:focus { border-color: #5c4daa; box-shadow: 0 0 0 2px #ece8ff; }
+    .edit-form-actions { display: flex; justify-content: flex-end; gap: 6px; }
+    .edit-form-btn {
+      border: none; border-radius: 5px; padding: 5px 16px;
+      font-size: 0.85rem; cursor: pointer; font-family: inherit;
+    }
+    .edit-form-btn.save   { background: #5c4daa; color: #fff; }
+    .edit-form-btn.save:hover   { background: #4a3d8a; }
+    .edit-form-btn.cancel { background: #f0f0f2; color: #555; }
+    .edit-form-btn.cancel:hover { background: #e4e4e8; }
+
+    /* ── Error / empty ──────────────────────────────────── */
+    .state-msg {
+      background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px;
+      padding: 14px 18px; color: #5a4000; font-size: 0.9rem; margin-top: 40px;
+    }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .layout { flex-direction: column; }
+      #topic-list {
+        width: 100%; max-width: 100%;
+        border-right: none; border-bottom: 1px solid #e0e0e0;
+        overflow-y: visible; max-height: 45vh;
+      }
+      #content-panel { padding: 16px; }
+      .entry-detail { padding-left: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span>My Memory Vault</span>
+    <button id="import-btn" aria-label="Import vault.md">Import</button>
+    <button id="export-btn" aria-label="Export vault.md">Export</button>
+    <button id="about-btn" aria-haspopup="dialog">About</button>
+  </header>
+
+  <!-- About modal -->
+  <div id="about-overlay" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+    <div id="about-modal">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <div class="modal-title" id="about-modal-title">My Memory Vault</div>
+          <div class="modal-subtitle">Your personal, always-evolving knowledge base</div>
+        </div>
+        <button id="about-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="about-intro">
+          My Memory Vault is a personal space to capture, organise, and revisit what you learn every day —
+          grouped by category and topic so nothing gets lost. It is designed to grow with you: start simple
+          today, and connect it to every tool you already use.
+        </p>
+
+        <div class="about-section">
+          <div class="about-section-title">Access anywhere</div>
+          <div class="about-cards">
+            <div class="about-card">
+              <div class="about-card-icon">📱</div>
+              <div class="about-card-title">Mobile App</div>
+              <div class="about-card-desc">Native app for iOS &amp; Android — capture learnings on the go, browse by category, and review past entries offline.</div>
+            </div>
+            <div class="about-card">
+              <div class="about-card-icon">🌐</div>
+              <div class="about-card-title">Web App</div>
+              <div class="about-card-desc">Full-featured browser experience — the same journal accessible from any desktop or laptop without installing anything.</div>
+            </div>
+            <div class="about-card">
+              <div class="about-card-icon">💬</div>
+              <div class="about-card-title">WhatsApp</div>
+              <div class="about-card-desc">Send a quick message to add a learning on the spot. Ask the bot to show you a topic and it replies with your notes.</div>
+            </div>
+            <div class="about-card">
+              <div class="about-card-icon">🤖</div>
+              <div class="about-card-title">ChatGPT &amp; Claude</div>
+              <div class="about-card-desc">Custom MCP servers let you add or query your journal directly inside ChatGPT or Claude — no copy-paste needed.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Personalised for you</div>
+          <div class="about-cards">
+            <div class="about-card">
+              <div class="about-card-icon">🔐</div>
+              <div class="about-card-title">Mobile OTP login</div>
+              <div class="about-card-desc">Sign in with your mobile number and a one-time password — no passwords to remember, works on any device.</div>
+            </div>
+            <div class="about-card">
+              <div class="about-card-icon">☁️</div>
+              <div class="about-card-title">Your data, your journal</div>
+              <div class="about-card-desc">Every category, topic, and entry belongs to your account. Learnings are private and synced across all your devices.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">On the roadmap</div>
+          <div class="about-future">
+            <ul>
+              <li><strong>Cloud database</strong> — entries will move from a local Markdown file to a proper database, enabling real-time sync and search.</li>
+              <li><strong>MCP server integrations</strong> — connect your journal to ChatGPT and Claude as a custom tool so AI assistants can read and write your learnings during any conversation.</li>
+              <li><strong>WhatsApp bot</strong> — send a voice note or message to log a learning instantly; reply with a topic name to get a summary back.</li>
+              <li><strong>Mobile app</strong> — iOS and Android apps with offline support, push reminders, and a quick-capture widget.</li>
+              <li><strong>Search &amp; smart review</strong> — full-text search across all entries and spaced-repetition prompts to help knowledge stick.</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="font-size:0.78rem;color:#aaa;margin-top:18px;text-align:center;">
+          Currently running in local mode &mdash; data stored in <code>vault.md</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav id="topic-list" aria-label="Categories">
+      <div id="topic-list-hd">
+        <h2>Categories</h2>
+        <button id="add-cat-btn" class="icon-btn add" title="Add category">+ Category</button>
+      </div>
+    </nav>
+    <main id="content-panel">
+      <p class="placeholder">Select a topic to view learnings.</p>
+    </main>
+  </div>
+
+  <script>
+    /*
+     * parseLearnings(markdown) → { categories: [{ name, topics: [{ name, entries: [{ date, summary, detail }] }] }] }
+     *
+     * Format:
+     *   ## Category: AI
+     *   ### Topic: Claude Code
+     *   - **2026-06-03** — Summary.
+     *     - Detail line.
+     *
+     * Example — two categories:
+     *   parseLearnings("## Category: AI\n### Topic: Foo\n- **2026-01-01** — S.\n\n## Category: Cloud\n### Topic: Bar\n- **2026-01-02** — T.\n")
+     *   → { categories: [{ name:"AI", topics:[{ name:"Foo", entries:[...] }] }, { name:"Cloud", ... }] }
+     *
+     * Example — empty:
+     *   parseLearnings("# My Memory Vault\n") → { categories: [] }
+     */
+    function parseLearnings(markdown) {
+      const categories = [];
+      let currentCat = null, currentTopic = null, currentSubtopic = null, currentEntry = null;
+
+      function flushEntry() {
+        if (!currentEntry) return;
+        (currentSubtopic || currentTopic)?.entries.push(currentEntry);
+        currentEntry = null;
+      }
+
+      for (const line of markdown.split('\n')) {
+        const catM = line.match(/^##\s+Category:\s*(.+)/);
+        if (catM) {
+          flushEntry();
+          currentSubtopic = null; currentTopic = null;
+          currentCat = { name: catM[1].trim(), topics: [] };
+          categories.push(currentCat);
+          continue;
+        }
+        const topicM = line.match(/^###\s+Topic:\s*(.+)/);
+        if (topicM) {
+          flushEntry();
+          currentSubtopic = null;
+          if (!currentCat) { currentCat = { name: 'General', topics: [] }; categories.push(currentCat); }
+          currentTopic = { name: topicM[1].trim(), entries: [], subtopics: [] };
+          currentCat.topics.push(currentTopic);
+          continue;
+        }
+        const subM = line.match(/^####\s+Subtopic:\s*(.+)/);
+        if (subM) {
+          flushEntry();
+          if (!currentTopic) continue;
+          currentSubtopic = { name: subM[1].trim(), entries: [] };
+          currentTopic.subtopics.push(currentSubtopic);
+          continue;
+        }
+        if (!currentTopic) continue;
+        const entryM = line.match(/^[-*]\s+\*\*(\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?)\*\*\s*(?:—|--)?\s*(.*)/);
+        if (entryM) {
+          flushEntry();
+          currentEntry = { date: entryM[1], summary: entryM[2].trim(), detail: '' };
+          continue;
+        }
+        if (currentEntry && line.match(/^\s+\S/)) {
+          const dl = line.replace(/^\s{2,}/, '');
+          currentEntry.detail += (currentEntry.detail ? '\n' : '') + dl;
+        }
+      }
+      flushEntry();
+      return { categories };
+    }
+
+    function fmtDate(iso) {
+      const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function nowTimestamp() {
+      return new Date().toISOString().slice(0, 19); // "YYYY-MM-DDTHH:MM:SS"
+    }
+
+    // ── Serialise / Storage ────────────────────────────────────────────────
+
+    const STORAGE_KEY = 'memoryvault-data';
+
+    function serializeLearnings(data) {
+      const out = ['# My Memory Vault\n'];
+      for (const cat of data.categories) {
+        out.push('\n## Category: ' + cat.name + '\n');
+        for (const topic of cat.topics) {
+          out.push('### Topic: ' + topic.name + '\n');
+          for (const e of topic.entries) {
+            out.push('- **' + e.date + '** — ' + e.summary + '\n');
+            if (e.detail.trim()) e.detail.split('\n').forEach(dl => { if (dl.trim()) out.push('  ' + dl + '\n'); });
+          }
+          for (const sub of topic.subtopics) {
+            out.push('#### Subtopic: ' + sub.name + '\n');
+            for (const e of sub.entries) {
+              out.push('- **' + e.date + '** — ' + e.summary + '\n');
+              if (e.detail.trim()) e.detail.split('\n').forEach(dl => { if (dl.trim()) out.push('  ' + dl + '\n'); });
+            }
+          }
+        }
+      }
+      return out.join('');
+    }
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, serializeLearnings(parsedData));
+    }
+
+    // ── Local API (replaces server calls) ─────────────────────────────────
+
+    async function apiPost(path, body) {
+      const result = localOp(path.replace('/api/', ''), body);
+      // Save after current sync code (UI mutation) completes
+      if (result.ok !== false) setTimeout(saveToStorage, 0);
+      return result;
+    }
+
+    function localOp(op, body) {
+      switch (op) {
+        case 'add-category': {
+          const name = (body.name || '').trim();
+          if (!name) return { ok: false, error: 'name required' };
+          if (parsedData.categories.find(c => c.name === name)) return { ok: false, error: 'already exists' };
+          return { ok: true };
+        }
+        case 'add-topic': {
+          const cat = parsedData.categories.find(c => c.name === (body.category || '').trim());
+          if (!cat) return { ok: false, error: 'category not found' };
+          if (cat.topics.find(t => t.name === (body.name || '').trim())) return { ok: false, error: 'topic already exists' };
+          return { ok: true };
+        }
+        case 'add-subtopic': {
+          const found = findTopic((body.topic || '').trim());
+          if (!found) return { ok: false, error: 'topic not found' };
+          if (found.topic.subtopics.find(s => s.name === (body.name || '').trim())) return { ok: false, error: 'subtopic already exists' };
+          return { ok: true };
+        }
+        case 'add-entry': {
+          const subName = (body.subtopic || '').trim() || null;
+          const topicName = (body.topic || '').trim();
+          if (subName) {
+            if (!findSubtopic(topicName, subName)) return { ok: false, error: 'subtopic not found' };
+          } else {
+            if (!findTopic(topicName)) return { ok: false, error: 'topic not found' };
+          }
+          return { ok: true };
+        }
+        // All other ops: trust the UI's own guards, always ok
+        default: return { ok: true };
+      }
+    }
+
+    // ── State ──────────────────────────────────────────────────────────────
+
+    const topicListEl  = document.getElementById('topic-list');
+    const contentPanel = document.getElementById('content-panel');
+    let activeTopicName = null;
+    let activeSubtopicName = null;
+    let parsedData = { categories: [] };
+
+    function findTopic(name) {
+      for (const cat of parsedData.categories) {
+        const t = cat.topics.find(t => t.name === name);
+        if (t) return { topic: t, category: cat };
+      }
+      return null;
+    }
+
+    function findSubtopic(topicName, subtopicName) {
+      const found = findTopic(topicName);
+      if (!found) return null;
+      const sub = found.topic.subtopics.find(s => s.name === subtopicName);
+      return sub ? { subtopic: sub, topic: found.topic, category: found.category } : null;
+    }
+
+    // ── Left panel ─────────────────────────────────────────────────────────
+
+    function renderTopicList(categories) {
+      topicListEl.querySelectorAll('.category-section').forEach(el => el.remove());
+      categories.forEach(cat => topicListEl.appendChild(makeCategorySection(cat)));
+    }
+
+    function makeCategorySection(cat) {
+      const section = document.createElement('div');
+      section.className = 'category-section';
+      section.dataset.category = cat.name;
+
+      // Restore collapsed state from localStorage
+      const collapsed = localStorage.getItem('cat-collapsed:' + cat.name) === '1';
+      if (collapsed) section.classList.add('collapsed');
+
+      section.appendChild(makeCategoryHeader(cat.name, section));
+
+      const topicsWrap = document.createElement('div');
+      topicsWrap.className = 'category-topics';
+      cat.topics.forEach(topic => topicsWrap.appendChild(makeTopicEntry(topic)));
+      section.appendChild(topicsWrap);
+
+      initCategoryDrag(section);
+      return section;
+    }
+
+    function toggleCategory(section, catName) {
+      const isNowCollapsed = section.classList.toggle('collapsed');
+      localStorage.setItem('cat-collapsed:' + catName, isNowCollapsed ? '1' : '0');
+    }
+
+    function makeCategoryHeader(name, section) {
+      const header = document.createElement('div');
+      header.className = 'category-header';
+      header.setAttribute('aria-expanded', section && !section.classList.contains('collapsed') ? 'true' : 'false');
+
+      // Clicking the header row (but not the action buttons) toggles fold
+      header.addEventListener('click', e => {
+        if (e.target.closest('.category-actions')) return;
+        if (e.target.closest('.cat-rename-input')) return;
+        const sec = header.closest('.category-section');
+        if (sec) {
+          toggleCategory(sec, name);
+          header.setAttribute('aria-expanded', sec.classList.contains('collapsed') ? 'false' : 'true');
+        }
+      });
+
+      const chevron = document.createElement('span');
+      chevron.className = 'cat-chevron';
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.textContent = '▼';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'category-name';
+      nameEl.textContent = name;
+
+      const actions = document.createElement('div');
+      actions.className = 'category-actions';
+
+      const addTopicBtn = document.createElement('button');
+      addTopicBtn.className = 'icon-btn add';
+      addTopicBtn.textContent = '+';
+      addTopicBtn.title = 'Add topic';
+      addTopicBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const sec = header.closest('.category-section');
+        showAddTopicForm(name, sec.querySelector('.category-topics'));
+      });
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn edit';
+      editBtn.textContent = '✏';
+      editBtn.title = 'Rename category';
+      editBtn.addEventListener('click', () => startCategoryRename(header, name));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn del';
+      delBtn.textContent = '−';
+      delBtn.title = 'Delete category';
+      delBtn.addEventListener('click', async () => {
+        const cat = parsedData.categories.find(c => c.name === name);
+        const topicCount = cat ? cat.topics.length : 0;
+        const msg = topicCount > 0
+          ? `Delete category "${name}" and all ${topicCount} topic(s) inside it?\n\nThis cannot be undone.`
+          : `Delete category "${name}"?`;
+        if (!confirm(msg)) return;
+        const data = await apiPost('/api/delete-category', { category: name });
+        if (data.ok) {
+          const section = topicListEl.querySelector(`.category-section[data-category="${CSS.escape(name)}"]`);
+          if (section) section.remove();
+          localStorage.removeItem('cat-collapsed:' + name);
+          parsedData.categories = parsedData.categories.filter(c => c.name !== name);
+          // If active topic was in this category, clear content panel
+          const stillExists = findTopic(activeTopicName);
+          if (!stillExists) {
+            activeTopicName = null; activeSubtopicName = null;
+            const remaining = parsedData.categories.flatMap(c => c.topics);
+            if (remaining.length > 0) selectItem(remaining[0].name, remaining[0].subtopics[0]?.name || null);
+            else contentPanel.innerHTML = '<p class="placeholder">No topics yet.</p>';
+          }
+        } else {
+          alert('Delete failed: ' + (data.error || 'category not found'));
+        }
+      });
+
+      actions.appendChild(addTopicBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      const catHandle = document.createElement('span');
+      catHandle.className = 'drag-handle'; catHandle.textContent = '⠿'; catHandle.setAttribute('aria-hidden','true');
+      header.appendChild(catHandle);
+      header.appendChild(chevron);
+      header.appendChild(nameEl);
+      header.appendChild(actions);
+      return header;
+    }
+
+    function startCategoryRename(header, oldName) {
+      const nameEl = header.querySelector('.category-name');
+      const actions = header.querySelector('.category-actions');
+
+      const input = document.createElement('input');
+      input.className = 'cat-rename-input';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓'; saveBtn.title = 'Save';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕'; cancelBtn.title = 'Cancel';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-category', { category: oldName, newName });
+        if (data.ok) {
+          const cat = parsedData.categories.find(c => c.name === oldName);
+          if (cat) cat.name = newName;
+          // Rebuild section
+          const section = topicListEl.querySelector(`.category-section[data-category="${CSS.escape(oldName)}"]`);
+          if (section) {
+            section.dataset.category = newName;
+            const newHeader = makeCategoryHeader(newName, section);
+            section.replaceChild(newHeader, section.querySelector('.category-header'));
+          }
+          // Update panel category tag if visible
+          const tag = contentPanel.querySelector('.panel-category-tag');
+          if (tag) {
+            if (tag.textContent === oldName) tag.textContent = newName;
+            else if (tag.textContent.startsWith(oldName + ' ›')) tag.textContent = newName + tag.textContent.slice(oldName.length);
+          }
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const doCancel = () => {
+        const section = topicListEl.querySelector(`.category-section[data-category="${CSS.escape(oldName)}"]`);
+        if (section) section.replaceChild(makeCategoryHeader(oldName, section), section.querySelector('.category-header'));
+      };
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSave();
+        if (e.key === 'Escape') doCancel();
+      });
+
+      actions.innerHTML = '';
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      actions.style.opacity = '1';
+      nameEl.replaceWith(input);
+      input.focus(); input.select();
+    }
+
+    function makeTopicEntry(topicObj) {
+      return topicObj.subtopics.length > 0
+        ? makeFolderTopicSection(topicObj)
+        : makeLeafTopicRow(topicObj.name);
+    }
+
+    function makeLeafTopicRow(name) {
+      const row = document.createElement('div');
+      row.className = 'topic-row';
+      row.dataset.name = name;
+
+      const btn = document.createElement('button');
+      const isActive = name === activeTopicName && activeSubtopicName === null;
+      btn.className = 'topic-item' + (isActive ? ' active' : '');
+      btn.dataset.topic = name;
+      btn.textContent = name;
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.addEventListener('click', () => selectItem(name, null));
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn edit'; editBtn.textContent = '✏'; editBtn.title = 'Rename topic';
+      editBtn.addEventListener('click', e => { e.stopPropagation(); startTopicRename(row, name); });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn del'; delBtn.textContent = '−'; delBtn.title = 'Delete topic';
+      delBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`Delete topic "${name}" and all its entries?\n\nThis cannot be undone.`)) return;
+        const data = await apiPost('/api/delete-topic', { topic: name });
+        if (data.ok) {
+          const section = row.closest('.category-section');
+          row.remove();
+          parsedData.categories.forEach(c => { c.topics = c.topics.filter(t => t.name !== name); });
+          if (data.categoryDeleted && section) {
+            localStorage.removeItem('cat-collapsed:' + section.dataset.category);
+            section.remove();
+          }
+          if (activeTopicName === name) {
+            activeTopicName = null; activeSubtopicName = null;
+            const remaining = parsedData.categories.flatMap(c => c.topics);
+            if (remaining.length > 0) selectItem(remaining[0].name, remaining[0].subtopics[0]?.name || null);
+            else contentPanel.innerHTML = '<p class="placeholder">No topics yet.</p>';
+          }
+        } else {
+          alert('Delete failed: ' + (data.error || 'topic not found'));
+        }
+      });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      const topicHandle = document.createElement('span');
+      topicHandle.className = 'drag-handle'; topicHandle.textContent = '⠿'; topicHandle.setAttribute('aria-hidden','true');
+      row.appendChild(topicHandle);
+      row.appendChild(btn);
+      row.appendChild(actions);
+      initTopicDrag(row);
+      return row;
+    }
+
+    function makeFolderTopicSection(topicObj) {
+      const section = document.createElement('div');
+      section.className = 'topic-section';
+      section.dataset.name = topicObj.name;
+
+      const hd = document.createElement('div');
+      hd.className = 'topic-expandable-hd';
+
+      const handle = document.createElement('span');
+      handle.className = 'drag-handle'; handle.textContent = '⠿'; handle.setAttribute('aria-hidden', 'true');
+
+      const chevron = document.createElement('span');
+      chevron.className = 'topic-chevron'; chevron.textContent = '▼';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'topic-folder-name';
+      nameEl.textContent = topicObj.name;
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      const addSubBtn = document.createElement('button');
+      addSubBtn.className = 'icon-btn add'; addSubBtn.textContent = '+'; addSubBtn.title = 'Add subtopic';
+      addSubBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        showAddSubtopicForm(topicObj.name, subtopicsWrap);
+      });
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn edit'; editBtn.textContent = '✏'; editBtn.title = 'Rename topic';
+      editBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        startFolderTopicRename(hd, topicObj.name, nameEl);
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn del'; delBtn.textContent = '−'; delBtn.title = 'Delete topic';
+      delBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const subCount = topicObj.subtopics.length;
+        const msg = subCount > 0
+          ? `Delete topic "${topicObj.name}" and all ${subCount} subtopic(s) and their entries?\n\nThis cannot be undone.`
+          : `Delete topic "${topicObj.name}"?`;
+        if (!confirm(msg)) return;
+        const data = await apiPost('/api/delete-topic', { topic: topicObj.name });
+        if (data.ok) {
+          const catSection = section.closest('.category-section');
+          section.remove();
+          parsedData.categories.forEach(c => { c.topics = c.topics.filter(t => t.name !== topicObj.name); });
+          if (data.categoryDeleted && catSection) {
+            localStorage.removeItem('cat-collapsed:' + catSection.dataset.category);
+            catSection.remove();
+          }
+          if (activeTopicName === topicObj.name) {
+            activeTopicName = null; activeSubtopicName = null;
+            const remaining = parsedData.categories.flatMap(c => c.topics);
+            if (remaining.length > 0) selectItem(remaining[0].name, remaining[0].subtopics[0]?.name || null);
+            else contentPanel.innerHTML = '<p class="placeholder">No topics yet.</p>';
+          }
+        } else {
+          alert('Delete failed: ' + (data.error || 'topic not found'));
+        }
+      });
+
+      hd.addEventListener('click', e => {
+        if (e.target.closest('.row-actions')) return;
+        section.classList.toggle('collapsed');
+      });
+
+      actions.appendChild(addSubBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      hd.appendChild(handle);
+      hd.appendChild(chevron);
+      hd.appendChild(nameEl);
+      hd.appendChild(actions);
+
+      const subtopicsWrap = document.createElement('div');
+      subtopicsWrap.className = 'topic-subtopics';
+      topicObj.subtopics.forEach(sub => subtopicsWrap.appendChild(makeSubtopicRow(topicObj.name, sub.name)));
+
+      section.appendChild(hd);
+      section.appendChild(subtopicsWrap);
+      initTopicDrag(section);
+      return section;
+    }
+
+    function makeSubtopicRow(topicName, subName) {
+      const row = document.createElement('div');
+      row.className = 'subtopic-row';
+      row.dataset.name = subName;
+
+      const btn = document.createElement('button');
+      const isActive = topicName === activeTopicName && subName === activeSubtopicName;
+      btn.className = 'subtopic-item' + (isActive ? ' active' : '');
+      btn.dataset.topic = topicName;
+      btn.dataset.subtopic = subName;
+      btn.textContent = subName;
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.addEventListener('click', () => selectItem(topicName, subName));
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn edit'; editBtn.textContent = '✏'; editBtn.title = 'Rename subtopic';
+      editBtn.addEventListener('click', e => { e.stopPropagation(); startSubtopicRename(row, topicName, subName); });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn del'; delBtn.textContent = '−'; delBtn.title = 'Delete subtopic';
+      delBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`Delete subtopic "${subName}" and all its entries?\n\nThis cannot be undone.`)) return;
+        const data = await apiPost('/api/delete-subtopic', { topic: topicName, subtopic: subName });
+        if (data.ok) {
+          const topicInfo = findTopic(topicName);
+          if (topicInfo) topicInfo.topic.subtopics = topicInfo.topic.subtopics.filter(s => s.name !== subName);
+          const catSection = row.closest('.category-section');
+          row.remove();
+          if (data.categoryDeleted && catSection) {
+            localStorage.removeItem('cat-collapsed:' + catSection.dataset.category);
+            catSection.remove();
+            parsedData.categories = parsedData.categories.filter(c => c.name !== catSection.dataset.category);
+          } else if (data.topicDeleted) {
+            const topicSection = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(topicName)}"], .topic-row[data-name="${CSS.escape(topicName)}"]`);
+            if (topicSection) topicSection.remove();
+            parsedData.categories.forEach(c => { c.topics = c.topics.filter(t => t.name !== topicName); });
+          } else if (topicInfo && topicInfo.topic.subtopics.length === 0) {
+            // No more subtopics — convert folder to leaf row
+            const topicSection = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(topicName)}"]`);
+            if (topicSection) topicSection.replaceWith(makeLeafTopicRow(topicName));
+          }
+          if (activeTopicName === topicName && activeSubtopicName === subName) {
+            activeTopicName = null; activeSubtopicName = null;
+            const topicInfo2 = findTopic(topicName);
+            if (topicInfo2 && topicInfo2.topic.subtopics.length > 0) {
+              selectItem(topicName, topicInfo2.topic.subtopics[0].name);
+            } else if (topicInfo2) {
+              selectItem(topicName, null);
+            } else {
+              const remaining = parsedData.categories.flatMap(c => c.topics);
+              if (remaining.length > 0) selectItem(remaining[0].name, remaining[0].subtopics[0]?.name || null);
+              else contentPanel.innerHTML = '<p class="placeholder">No topics yet.</p>';
+            }
+          }
+        } else {
+          alert('Delete failed: ' + (data.error || 'subtopic not found'));
+        }
+      });
+
+      const dragHandle = document.createElement('span');
+      dragHandle.className = 'drag-handle'; dragHandle.textContent = '⠿'; dragHandle.setAttribute('aria-hidden', 'true');
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      row.appendChild(dragHandle);
+      row.appendChild(btn);
+      row.appendChild(actions);
+      initSubtopicDrag(row);
+      return row;
+    }
+
+    function startFolderTopicRename(hd, oldName, nameEl) {
+      const actions = hd.querySelector('.row-actions');
+      const input = document.createElement('input');
+      input.className = 'topic-rename-input';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
+        if (data.ok) {
+          const found = findTopic(oldName);
+          if (found) found.topic.name = newName;
+          const section = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(oldName)}"]`);
+          if (section) section.dataset.name = newName;
+          if (activeTopicName === oldName) activeTopicName = newName;
+          nameEl.textContent = newName;
+          input.replaceWith(nameEl);
+          actions.innerHTML = '';
+          const addB = document.createElement('button'); addB.className = 'icon-btn add'; addB.textContent = '+'; addB.title = 'Add subtopic';
+          addB.addEventListener('click', e => { e.stopPropagation(); const found2 = findTopic(newName); if (found2) showAddSubtopicForm(newName, hd.nextElementSibling); });
+          const editB = document.createElement('button'); editB.className = 'icon-btn edit'; editB.textContent = '✏'; editB.title = 'Rename topic';
+          editB.addEventListener('click', e => { e.stopPropagation(); startFolderTopicRename(hd, newName, nameEl); });
+          const delB = document.createElement('button'); delB.className = 'icon-btn del'; delB.textContent = '−'; delB.title = 'Delete topic';
+          actions.appendChild(addB); actions.appendChild(editB); actions.appendChild(delB);
+          actions.style.opacity = '';
+          const h1 = contentPanel.querySelector('.panel-title h1');
+          if (h1 && activeTopicName === newName && !activeSubtopicName) h1.textContent = newName;
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const doCancel = () => { input.replaceWith(nameEl); actions.style.opacity = ''; };
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') doCancel(); });
+
+      nameEl.replaceWith(input);
+      actions.innerHTML = '';
+      actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
+      actions.style.opacity = '1';
+      input.focus(); input.select();
+    }
+
+    function startSubtopicRename(row, topicName, oldName) {
+      const btn = row.querySelector('.subtopic-item');
+      const actions = row.querySelector('.row-actions');
+
+      const input = document.createElement('input');
+      input.className = 'topic-rename-input';
+      input.style.paddingLeft = '36px';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-subtopic', { topic: topicName, subtopic: oldName, newName });
+        if (data.ok) {
+          const found = findSubtopic(topicName, oldName);
+          if (found) found.subtopic.name = newName;
+          if (activeSubtopicName === oldName && activeTopicName === topicName) activeSubtopicName = newName;
+          row.replaceWith(makeSubtopicRow(topicName, newName));
+          const h1 = contentPanel.querySelector('.panel-title h1');
+          if (h1 && activeSubtopicName === newName && activeTopicName === topicName) h1.textContent = newName;
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const doCancel = () => row.replaceWith(makeSubtopicRow(topicName, oldName));
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') doCancel(); });
+
+      btn.replaceWith(input);
+      actions.innerHTML = '';
+      actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
+      actions.style.opacity = '1';
+      input.focus(); input.select();
+    }
+
+    function startTopicRename(row, oldName) {
+      const btn = row.querySelector('.topic-item');
+      const actions = row.querySelector('.row-actions');
+
+      const input = document.createElement('input');
+      input.className = 'topic-rename-input';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
+        if (data.ok) {
+          parsedData.categories.forEach(c => {
+            const t = c.topics.find(t => t.name === oldName);
+            if (t) t.name = newName;
+          });
+          if (activeTopicName === oldName) activeTopicName = newName;
+          const found = findTopic(newName);
+          row.replaceWith(makeTopicEntry(found ? found.topic : { name: newName, entries: [], subtopics: [] }));
+          const h1 = contentPanel.querySelector('.panel-title h1');
+          if (h1 && h1.textContent === oldName) h1.textContent = newName;
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const found0 = findTopic(oldName);
+      const doCancel = () => row.replaceWith(makeTopicEntry(found0 ? found0.topic : { name: oldName, entries: [], subtopics: [] }));
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSave();
+        if (e.key === 'Escape') doCancel();
+      });
+
+      btn.replaceWith(input);
+      actions.innerHTML = '';
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      actions.style.opacity = '1';
+      input.focus(); input.select();
+    }
+
+    // ── Right panel ────────────────────────────────────────────────────────
+
+    function renderEntries(topic, subtopic, categoryName) {
+      const target = subtopic || topic;
+      contentPanel.innerHTML = '';
+
+      const titleBar = document.createElement('div');
+      titleBar.className = 'panel-title';
+      const h1 = document.createElement('h1');
+      h1.textContent = subtopic ? subtopic.name : topic.name;
+
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'icon-btn edit';
+      renameBtn.textContent = '✏';
+      renameBtn.title = subtopic ? 'Rename subtopic' : 'Rename topic';
+      renameBtn.addEventListener('click', () => {
+        if (subtopic) startPanelSubtopicRename(titleBar, topic, subtopic);
+        else startPanelTitleRename(titleBar, topic);
+      });
+
+      const addEntryBtn = document.createElement('button');
+      addEntryBtn.className = 'icon-btn add';
+      addEntryBtn.textContent = '+ Entry';
+      addEntryBtn.title = 'Add new entry';
+      addEntryBtn.addEventListener('click', () => showAddEntryForm(topic, subtopic || null));
+
+      titleBar.appendChild(h1);
+      titleBar.appendChild(renameBtn);
+      if (!subtopic) {
+        const addSubBtn = document.createElement('button');
+        addSubBtn.className = 'icon-btn add';
+        addSubBtn.textContent = '+ Subtopic';
+        addSubBtn.title = 'Add subtopic';
+        addSubBtn.addEventListener('click', () => {
+          const topicEl = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(topic.name)}"], .topic-row[data-name="${CSS.escape(topic.name)}"]`);
+          const wrap = topicEl?.querySelector('.topic-subtopics') || null;
+          showAddSubtopicForm(topic.name, wrap, topicEl);
+        });
+        titleBar.appendChild(addSubBtn);
+      }
+      titleBar.appendChild(addEntryBtn);
+      contentPanel.appendChild(titleBar);
+
+      const tag = document.createElement('p');
+      tag.className = 'panel-category-tag';
+      tag.textContent = subtopic ? `${categoryName} › ${topic.name}` : categoryName;
+      contentPanel.appendChild(tag);
+
+      if (target.entries.length === 0) {
+        const p = document.createElement('p'); p.className = 'no-entries-msg'; p.style.color = '#aaa'; p.textContent = 'No entries yet.';
+        contentPanel.appendChild(p);
+      }
+
+      target.entries.forEach(entry => contentPanel.appendChild(makeEntryCard(topic, entry, subtopic?.name || null)));
+    }
+
+    function startPanelTitleRename(titleBar, topic) {
+      const h1 = titleBar.querySelector('h1');
+      const renameBtn = titleBar.querySelector('.icon-btn.edit');
+      const oldName = topic.name;
+
+      const input = document.createElement('input');
+      input.className = 'panel-title-input';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
+        if (data.ok) {
+          topic.name = newName;
+          if (activeTopicName === oldName) activeTopicName = newName;
+          const el = topicListEl.querySelector(`.topic-row[data-name="${CSS.escape(oldName)}"], .topic-section[data-name="${CSS.escape(oldName)}"]`);
+          const found = findTopic(newName);
+          if (el) el.replaceWith(makeTopicEntry(found ? found.topic : { name: newName, entries: [], subtopics: [] }));
+          h1.textContent = newName;
+          input.replaceWith(h1);
+          saveBtn.remove(); cancelBtn.remove();
+          titleBar.appendChild(renameBtn);
+          const tag = contentPanel.querySelector('.panel-category-tag');
+          if (tag && !activeSubtopicName) tag.textContent = found?.category?.name || '';
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const doCancel = () => {
+        input.replaceWith(h1); saveBtn.remove(); cancelBtn.remove(); titleBar.appendChild(renameBtn);
+      };
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSave();
+        if (e.key === 'Escape') doCancel();
+      });
+
+      renameBtn.remove(); h1.replaceWith(input);
+      titleBar.appendChild(saveBtn); titleBar.appendChild(cancelBtn);
+      input.focus(); input.select();
+    }
+
+    function startPanelSubtopicRename(titleBar, topic, subtopic) {
+      const h1 = titleBar.querySelector('h1');
+      const renameBtn = titleBar.querySelector('.icon-btn.edit');
+      const oldName = subtopic.name;
+
+      const input = document.createElement('input');
+      input.className = 'panel-title-input';
+      input.value = oldName;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) { doCancel(); return; }
+        const data = await apiPost('/api/rename-subtopic', { topic: topic.name, subtopic: oldName, newName });
+        if (data.ok) {
+          subtopic.name = newName;
+          if (activeSubtopicName === oldName) activeSubtopicName = newName;
+          const row = topicListEl.querySelector(`.subtopic-row[data-name="${CSS.escape(oldName)}"]`);
+          if (row) row.replaceWith(makeSubtopicRow(topic.name, newName));
+          h1.textContent = newName;
+          input.replaceWith(h1);
+          saveBtn.remove(); cancelBtn.remove();
+          titleBar.appendChild(renameBtn);
+        } else {
+          alert('Rename failed: ' + (data.error || 'unknown')); doCancel();
+        }
+      };
+      const doCancel = () => {
+        input.replaceWith(h1); saveBtn.remove(); cancelBtn.remove(); titleBar.appendChild(renameBtn);
+      };
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSave();
+        if (e.key === 'Escape') doCancel();
+      });
+
+      renameBtn.remove(); h1.replaceWith(input);
+      titleBar.appendChild(saveBtn); titleBar.appendChild(cancelBtn);
+      input.focus(); input.select();
+    }
+
+    function makeEntryCard(topic, entry, subtopicName = null) {
+      const card = document.createElement('div');
+      card.className = 'entry';
+
+      const header = document.createElement('div');
+      header.className = 'entry-header';
+      header.setAttribute('role', 'button');
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('aria-expanded', 'false');
+
+      const dateEl = document.createElement('span');
+      dateEl.className = 'entry-date';
+      dateEl.textContent = fmtDate(entry.date);
+
+      const summaryEl = document.createElement('span');
+      summaryEl.className = 'entry-summary';
+      summaryEl.textContent = entry.summary;
+
+      const chevron = document.createElement('span');
+      chevron.className = 'chevron';
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.textContent = '▼';
+
+      const actions = document.createElement('div');
+      actions.className = 'entry-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn edit'; editBtn.textContent = '✏'; editBtn.title = 'Edit entry';
+      editBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        card.classList.add('editing');
+        card.classList.remove('expanded');
+        header.setAttribute('aria-expanded', 'false');
+        summaryInput.value = entry.summary;
+        detailInput.value = entry.detail;
+        summaryInput.focus();
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn del'; delBtn.textContent = '−'; delBtn.title = 'Delete entry';
+      delBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`Delete the entry from ${fmtDate(entry.date)}?\n\nThis cannot be undone.`)) return;
+        const data = await apiPost('/api/delete-entry', { topic: topic.name, subtopic: subtopicName || '', date: entry.date });
+        if (data.ok) {
+          card.style.opacity = '0'; card.style.transform = 'translateX(8px)';
+          setTimeout(() => {
+            card.remove();
+            const t = findTopic(topic.name);
+            if (subtopicName) {
+              const sub = t?.topic.subtopics.find(s => s.name === subtopicName);
+              if (sub) sub.entries = sub.entries.filter(en => en.date !== entry.date);
+            } else {
+              if (t) t.topic.entries = t.topic.entries.filter(en => en.date !== entry.date);
+            }
+            if (data.categoryDeleted) {
+              const sec = topicListEl.querySelector(`.category-section[data-category="${CSS.escape(t?.category?.name || '')}"]`);
+              if (sec) sec.remove();
+              parsedData.categories = parsedData.categories.filter(c => c.name !== t?.category?.name);
+            } else if (data.topicDeleted) {
+              const el = topicListEl.querySelector(`.topic-row[data-name="${CSS.escape(topic.name)}"], .topic-section[data-name="${CSS.escape(topic.name)}"]`);
+              if (el) el.remove();
+              parsedData.categories.forEach(c => { c.topics = c.topics.filter(tp => tp.name !== topic.name); });
+            } else if (data.subtopicDeleted) {
+              const subRow = topicListEl.querySelector(`.subtopic-row[data-name="${CSS.escape(subtopicName)}"]`);
+              if (subRow) subRow.remove();
+              if (t) t.topic.subtopics = t.topic.subtopics.filter(s => s.name !== subtopicName);
+              if (t && t.topic.subtopics.length === 0) {
+                const topicSec = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(topic.name)}"]`);
+                if (topicSec) topicSec.replaceWith(makeLeafTopicRow(topic.name));
+              }
+            }
+            if (data.topicDeleted || data.categoryDeleted) {
+              activeTopicName = null; activeSubtopicName = null;
+              const remaining = parsedData.categories.flatMap(c => c.topics);
+              if (remaining.length > 0) selectItem(remaining[0].name, remaining[0].subtopics[0]?.name || null);
+              else contentPanel.innerHTML = '<p class="placeholder">No topics remaining.</p>';
+            } else if (data.subtopicDeleted) {
+              const t2 = findTopic(topic.name);
+              if (t2 && t2.topic.subtopics.length > 0) selectItem(topic.name, t2.topic.subtopics[0].name);
+              else if (t2) selectItem(topic.name, null);
+              else contentPanel.innerHTML = '<p class="placeholder">No topics remaining.</p>';
+            } else if (!contentPanel.querySelector('.entry')) {
+              const p = document.createElement('p'); p.style.color = '#aaa'; p.textContent = 'No entries yet.';
+              contentPanel.appendChild(p);
+            }
+            saveToStorage();
+          }, 200);
+        } else {
+          alert('Delete failed: ' + (data.error || 'entry not found'));
+        }
+      });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      header.appendChild(dateEl);
+      header.appendChild(summaryEl);
+      if (entry.detail) header.appendChild(chevron);
+      header.appendChild(actions);
+
+      const toggle = () => {
+        if (card.classList.contains('editing')) return;
+        const expanded = card.classList.toggle('expanded');
+        header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      };
+      if (entry.detail) {
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      } else {
+        header.style.cursor = 'default';
+      }
+
+      const detailEl = document.createElement('div');
+      detailEl.className = 'entry-detail';
+      detailEl.textContent = entry.detail || '(no additional detail)';
+
+      // Edit form
+      const editForm = document.createElement('div');
+      editForm.className = 'entry-edit-form';
+
+      const summaryRow = document.createElement('div'); summaryRow.className = 'edit-row';
+      const summaryLabel = document.createElement('span'); summaryLabel.className = 'edit-label'; summaryLabel.textContent = 'Summary';
+      const summaryInput = document.createElement('input');
+      summaryInput.className = 'edit-summary-input'; summaryInput.type = 'text'; summaryInput.value = entry.summary;
+      summaryRow.appendChild(summaryLabel); summaryRow.appendChild(summaryInput);
+
+      const detailRow = document.createElement('div'); detailRow.className = 'edit-row';
+      const detailLabel = document.createElement('span'); detailLabel.className = 'edit-label'; detailLabel.textContent = 'Detail';
+      const detailInput = document.createElement('textarea');
+      detailInput.className = 'edit-detail-input'; detailInput.value = entry.detail;
+      detailInput.placeholder = 'Optional detail (each line will be indented in the MD file)';
+      detailRow.appendChild(detailLabel); detailRow.appendChild(detailInput);
+
+      const formActions = document.createElement('div'); formActions.className = 'edit-form-actions';
+      const cancelFormBtn = document.createElement('button');
+      cancelFormBtn.className = 'edit-form-btn cancel'; cancelFormBtn.textContent = 'Cancel';
+      cancelFormBtn.addEventListener('click', () => card.classList.remove('editing'));
+
+      const saveFormBtn = document.createElement('button');
+      saveFormBtn.className = 'edit-form-btn save'; saveFormBtn.textContent = 'Save';
+      saveFormBtn.addEventListener('click', async () => {
+        const newSummary = summaryInput.value.trim();
+        const newDetail  = detailInput.value;
+        if (!newSummary) { summaryInput.focus(); return; }
+        const data = await apiPost('/api/update-entry', {
+          topic: topic.name, subtopic: subtopicName || '', date: entry.date, summary: newSummary, detail: newDetail,
+        });
+        if (data.ok) {
+          entry.summary = newSummary; entry.detail = newDetail;
+          card.replaceWith(makeEntryCard(topic, entry, subtopicName));
+        } else {
+          alert('Save failed: ' + (data.error || 'unknown'));
+        }
+      });
+
+      [summaryInput, detailInput].forEach(el => {
+        el.addEventListener('keydown', e => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') saveFormBtn.click();
+          if (e.key === 'Escape') cancelFormBtn.click();
+        });
+      });
+
+      formActions.appendChild(cancelFormBtn); formActions.appendChild(saveFormBtn);
+      editForm.appendChild(summaryRow); editForm.appendChild(detailRow); editForm.appendChild(formActions);
+
+      card.appendChild(header);
+      card.appendChild(detailEl);
+      card.appendChild(editForm);
+      return card;
+    }
+
+    // ── Selection ──────────────────────────────────────────────────────────
+
+    function selectItem(topicName, subtopicName = null) {
+      activeTopicName = topicName;
+      activeSubtopicName = subtopicName;
+      topicListEl.querySelectorAll('.topic-item, .subtopic-item').forEach(btn => {
+        const isSub = btn.classList.contains('subtopic-item');
+        const isActive = isSub
+          ? (btn.dataset.topic === topicName && btn.dataset.subtopic === subtopicName)
+          : (btn.dataset.topic === topicName && subtopicName === null);
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+      const found = findTopic(topicName);
+      if (!found) return;
+      if (subtopicName) {
+        const sub = found.topic.subtopics.find(s => s.name === subtopicName);
+        if (sub) renderEntries(found.topic, sub, found.category.name);
+      } else {
+        renderEntries(found.topic, null, found.category.name);
+      }
+    }
+
+    function showError(msg) {
+      contentPanel.innerHTML = `<div class="state-msg">${msg}</div>`;
+    }
+
+    // ── Drag and drop ──────────────────────────────────────────────────────
+
+    let dragSrc  = null;
+    let dragType = null;   // 'category' | 'topic'
+    let handleDown = false;
+
+    document.addEventListener('mouseup',  () => { handleDown = false; });
+    document.addEventListener('touchend', () => { handleDown = false; });
+
+    function makeDropLine() {
+      const d = document.createElement('div');
+      d.className = 'drop-line';
+      return d;
+    }
+    function removeDropLines() {
+      topicListEl.querySelectorAll('.drop-line').forEach(l => l.remove());
+    }
+
+    // Allow the list container itself to be a drop target so the cursor doesn't flicker
+    topicListEl.addEventListener('dragover', e => {
+      if (dragSrc) e.preventDefault();
+    });
+
+    function initCategoryDrag(section) {
+      const handle = section.querySelector('.category-header .drag-handle');
+
+      handle.addEventListener('mousedown',  () => { handleDown = true; });
+      handle.addEventListener('touchstart', () => { handleDown = true; }, { passive: true });
+
+      section.setAttribute('draggable', 'true');
+
+      section.addEventListener('dragstart', e => {
+        if (!handleDown) { e.preventDefault(); return; }
+        dragSrc = section; dragType = 'category';
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => section.classList.add('dragging'), 0);
+      });
+
+      section.addEventListener('dragend', () => {
+        section.classList.remove('dragging');
+        removeDropLines();
+        dragSrc = null; dragType = null; handleDown = false;
+      });
+
+      section.addEventListener('dragover', e => {
+        if (dragType !== 'category' || dragSrc === section) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = section.getBoundingClientRect();
+        const line = makeDropLine();
+        if (e.clientY < top + height / 2) section.before(line);
+        else section.after(line);
+      });
+
+      section.addEventListener('drop', e => {
+        if (dragType !== 'category' || dragSrc === section) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = section.getBoundingClientRect();
+        if (e.clientY < top + height / 2) section.before(dragSrc);
+        else section.after(dragSrc);
+        saveCategoryOrder();
+      });
+    }
+
+    function initTopicDrag(el) {
+      const handle = el.querySelector(':scope > .drag-handle, :scope > .topic-expandable-hd > .drag-handle');
+      if (!handle) return;
+
+      handle.addEventListener('mousedown',  () => { handleDown = true; });
+      handle.addEventListener('touchstart', () => { handleDown = true; }, { passive: true });
+
+      el.setAttribute('draggable', 'true');
+
+      el.addEventListener('dragstart', e => {
+        if (!handleDown) { e.preventDefault(); return; }
+        e.stopPropagation();
+        dragSrc = el; dragType = 'topic';
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => el.classList.add('dragging'), 0);
+      });
+
+      el.addEventListener('dragend', () => {
+        el.classList.remove('dragging');
+        removeDropLines();
+        dragSrc = null; dragType = null; handleDown = false;
+      });
+
+      el.addEventListener('dragover', e => {
+        if (dragType !== 'topic' || dragSrc === el) return;
+        if (dragSrc.closest('.category-section') !== el.closest('.category-section')) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = el.getBoundingClientRect();
+        const line = makeDropLine();
+        if (e.clientY < top + height / 2) el.before(line);
+        else el.after(line);
+      });
+
+      el.addEventListener('drop', e => {
+        if (dragType !== 'topic' || dragSrc === el) return;
+        if (dragSrc.closest('.category-section') !== el.closest('.category-section')) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = el.getBoundingClientRect();
+        if (e.clientY < top + height / 2) el.before(dragSrc);
+        else el.after(dragSrc);
+        saveTopicOrder(el.closest('.category-section'));
+      });
+    }
+
+    function initSubtopicDrag(row) {
+      const handle = row.querySelector('.drag-handle');
+      if (!handle) return;
+
+      handle.addEventListener('mousedown',  () => { handleDown = true; });
+      handle.addEventListener('touchstart', () => { handleDown = true; }, { passive: true });
+
+      row.setAttribute('draggable', 'true');
+
+      row.addEventListener('dragstart', e => {
+        if (!handleDown) { e.preventDefault(); return; }
+        e.stopPropagation();
+        dragSrc = row; dragType = 'subtopic';
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => row.classList.add('dragging'), 0);
+      });
+
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        removeDropLines();
+        dragSrc = null; dragType = null; handleDown = false;
+      });
+
+      row.addEventListener('dragover', e => {
+        if (dragType !== 'subtopic' || dragSrc === row) return;
+        if (dragSrc.closest('.topic-section') !== row.closest('.topic-section')) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = row.getBoundingClientRect();
+        const line = makeDropLine();
+        if (e.clientY < top + height / 2) row.before(line);
+        else row.after(line);
+      });
+
+      row.addEventListener('drop', e => {
+        if (dragType !== 'subtopic' || dragSrc === row) return;
+        if (dragSrc.closest('.topic-section') !== row.closest('.topic-section')) return;
+        e.preventDefault(); e.stopPropagation();
+        removeDropLines();
+        const { top, height } = row.getBoundingClientRect();
+        if (e.clientY < top + height / 2) row.before(dragSrc);
+        else row.after(dragSrc);
+        saveSubtopicOrder(row.closest('.topic-section'));
+      });
+    }
+
+    async function saveCategoryOrder() {
+      const order = [...topicListEl.querySelectorAll('.category-section')].map(s => s.dataset.category);
+      parsedData.categories = order.map(n => parsedData.categories.find(c => c.name === n)).filter(Boolean);
+      await apiPost('/api/reorder-categories', { order });
+    }
+
+    async function saveTopicOrder(section) {
+      const catName = section.dataset.category;
+      const order = [...section.querySelectorAll('.category-topics > .topic-row, .category-topics > .topic-section')].map(r => r.dataset.name);
+      const cat = parsedData.categories.find(c => c.name === catName);
+      if (cat) cat.topics = order.map(n => cat.topics.find(t => t.name === n)).filter(Boolean);
+      await apiPost('/api/reorder-topics', { category: catName, order });
+    }
+
+    async function saveSubtopicOrder(topicSection) {
+      const topicName = topicSection.dataset.name;
+      const order = [...topicSection.querySelectorAll('.topic-subtopics > .subtopic-row')].map(r => r.dataset.name);
+      const found = findTopic(topicName);
+      if (found) found.topic.subtopics = order.map(n => found.topic.subtopics.find(s => s.name === n)).filter(Boolean);
+      await apiPost('/api/reorder-subtopics', { topic: topicName, order });
+    }
+
+    // ── Add helpers ────────────────────────────────────────────────────────
+
+    function showAddCategoryForm() {
+      // Toggle: clicking + again dismisses the form
+      const existing = topicListEl.querySelector('.inline-add-row.for-category');
+      if (existing) { existing.remove(); return; }
+
+      const row = document.createElement('div');
+      row.className = 'inline-add-row for-category';
+
+      const input = document.createElement('input');
+      input.className = 'inline-add-input';
+      input.placeholder = 'Category name…';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        const data = await apiPost('/api/add-category', { name });
+        if (data.ok) {
+          const newCat = { name, topics: [] };
+          parsedData.categories.push(newCat);
+          topicListEl.insertBefore(makeCategorySection(newCat), row);
+          row.remove();
+        } else {
+          alert('Could not add category: ' + (data.error || 'unknown'));
+        }
+      };
+      const doCancel = () => row.remove();
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') doCancel(); });
+
+      row.appendChild(input); row.appendChild(saveBtn); row.appendChild(cancelBtn);
+      topicListEl.appendChild(row);
+      input.focus();
+    }
+
+    function showAddTopicForm(catName, topicsWrap) {
+      const existing = topicsWrap.querySelector('.inline-add-row.for-topic');
+      if (existing) { existing.remove(); return; }
+
+      // Expand the category if collapsed
+      const section = topicsWrap.closest('.category-section');
+      if (section && section.classList.contains('collapsed')) {
+        toggleCategory(section, catName);
+        section.querySelector('.category-header').setAttribute('aria-expanded', 'true');
+      }
+
+      const row = document.createElement('div');
+      row.className = 'inline-add-row for-topic';
+
+      const input = document.createElement('input');
+      input.className = 'inline-add-input';
+      input.placeholder = 'Topic name…';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        const data = await apiPost('/api/add-topic', { category: catName, name });
+        if (data.ok) {
+          const cat = parsedData.categories.find(c => c.name === catName);
+          const newTopic = { name, entries: [], subtopics: [] };
+          if (cat) cat.topics.push(newTopic);
+          topicsWrap.insertBefore(makeLeafTopicRow(name), row);
+          row.remove();
+        } else {
+          alert('Could not add topic: ' + (data.error || 'unknown'));
+        }
+      };
+      const doCancel = () => row.remove();
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') doCancel(); });
+
+      row.appendChild(input); row.appendChild(saveBtn); row.appendChild(cancelBtn);
+      topicsWrap.appendChild(row);
+      input.focus();
+    }
+
+    function showAddSubtopicForm(topicName, subtopicsWrap, topicEl) {
+      const existing = subtopicsWrap?.querySelector('.inline-add-row.for-subtopic') ||
+                       topicListEl.querySelector(`.inline-add-row.for-subtopic[data-topic="${CSS.escape(topicName)}"]`);
+      if (existing) { existing.remove(); return; }
+
+      const row = document.createElement('div');
+      row.className = 'inline-add-row for-subtopic';
+      row.dataset.topic = topicName;
+      row.style.paddingLeft = '24px';
+
+      const input = document.createElement('input');
+      input.className = 'inline-add-input';
+      input.placeholder = 'Subtopic name…';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save'; saveBtn.textContent = '✓';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'icon-btn cancel'; cancelBtn.textContent = '✕';
+
+      const doSave = async () => {
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        const data = await apiPost('/api/add-subtopic', { topic: topicName, name });
+        if (data.ok) {
+          const found = findTopic(topicName);
+          if (found) found.topic.subtopics.push({ name, entries: [] });
+
+          // If topic was a leaf, convert it to a folder section
+          const existingEl = topicListEl.querySelector(`.topic-row[data-name="${CSS.escape(topicName)}"]`);
+          if (existingEl && found) {
+            const newSection = makeFolderTopicSection(found.topic);
+            existingEl.replaceWith(newSection);
+            const newWrap = newSection.querySelector('.topic-subtopics');
+            row.remove();
+            selectItem(topicName, name);
+            return;
+          }
+
+          if (subtopicsWrap) subtopicsWrap.insertBefore(makeSubtopicRow(topicName, name), row);
+          row.remove();
+          selectItem(topicName, name);
+        } else {
+          alert('Could not add subtopic: ' + (data.error || 'unknown'));
+        }
+      };
+      const doCancel = () => row.remove();
+
+      saveBtn.addEventListener('click', doSave);
+      cancelBtn.addEventListener('click', doCancel);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') doCancel(); });
+
+      row.appendChild(input); row.appendChild(saveBtn); row.appendChild(cancelBtn);
+
+      if (subtopicsWrap) {
+        subtopicsWrap.appendChild(row);
+        // Expand the section if collapsed
+        const sec = subtopicsWrap.closest('.topic-section');
+        if (sec) sec.classList.remove('collapsed');
+      } else if (topicEl) {
+        topicEl.after(row);
+      } else {
+        topicListEl.appendChild(row);
+      }
+      input.focus();
+    }
+
+    function showAddEntryForm(topic, subtopic = null) {
+      // Remove existing add-form if open (toggle)
+      const existing = contentPanel.querySelector('.add-entry-card');
+      if (existing) { existing.remove(); return; }
+
+      const card = document.createElement('div');
+      card.className = 'add-entry-card';
+
+      const summaryRow = document.createElement('div'); summaryRow.className = 'edit-row';
+      const summaryLabel = document.createElement('span'); summaryLabel.className = 'edit-label'; summaryLabel.textContent = 'Summary';
+      const summaryInput = document.createElement('input');
+      summaryInput.className = 'edit-summary-input'; summaryInput.type = 'text';
+      summaryInput.placeholder = 'What did you learn?';
+      summaryRow.appendChild(summaryLabel); summaryRow.appendChild(summaryInput);
+
+      const detailRow = document.createElement('div'); detailRow.className = 'edit-row';
+      const detailLabel = document.createElement('span'); detailLabel.className = 'edit-label'; detailLabel.textContent = 'Detail';
+      const detailInput = document.createElement('textarea');
+      detailInput.className = 'edit-detail-input';
+      detailInput.placeholder = 'Optional — expanded notes (each line becomes an indented bullet)';
+      detailRow.appendChild(detailLabel); detailRow.appendChild(detailInput);
+
+      const formActions = document.createElement('div'); formActions.className = 'edit-form-actions';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'edit-form-btn cancel'; cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', () => card.remove());
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'edit-form-btn save'; saveBtn.textContent = 'Add Entry';
+      saveBtn.addEventListener('click', async () => {
+        const summary = summaryInput.value.trim();
+        const detail  = detailInput.value;
+        if (!summary) { summaryInput.focus(); return; }
+        const date = nowTimestamp(); // auto-capture current datetime
+        const data = await apiPost('/api/add-entry', { topic: topic.name, subtopic: subtopic?.name || '', date, summary, detail });
+        if (data.ok) {
+          const newEntry = { date, summary, detail };
+          const targetEntries = subtopic ? subtopic.entries : topic.entries;
+          targetEntries.unshift(newEntry);
+          contentPanel.querySelector('.no-entries-msg')?.remove();
+          const tag = contentPanel.querySelector('.panel-category-tag');
+          const insertAfter = tag || contentPanel.querySelector('.panel-title');
+          card.remove();
+          const newCard = makeEntryCard(topic, newEntry, subtopic?.name || null);
+          insertAfter.insertAdjacentElement('afterend', newCard);
+        } else {
+          alert('Could not add entry: ' + (data.error || 'unknown'));
+        }
+      });
+
+      [summaryInput, detailInput].forEach(el => {
+        el.addEventListener('keydown', e => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') saveBtn.click();
+          if (e.key === 'Escape') cancelBtn.click();
+        });
+      });
+
+      formActions.appendChild(cancelBtn); formActions.appendChild(saveBtn);
+      card.appendChild(summaryRow);
+      card.appendChild(detailRow); card.appendChild(formActions);
+
+      // Insert after the category tag
+      const tag = contentPanel.querySelector('.panel-category-tag');
+      if (tag) tag.insertAdjacentElement('afterend', card);
+      else contentPanel.appendChild(card);
+
+      summaryInput.focus();
+    }
+
+    // ── About modal ────────────────────────────────────────────────────────
+
+    const aboutOverlay = document.getElementById('about-overlay');
+    const aboutModal   = document.getElementById('about-modal');
+
+    document.getElementById('add-cat-btn').addEventListener('click', showAddCategoryForm);
+
+    document.getElementById('about-btn').addEventListener('click', () => {
+      aboutOverlay.classList.add('open');
+      document.getElementById('about-close').focus();
+    });
+    document.getElementById('about-close').addEventListener('click', closeAbout);
+    aboutOverlay.addEventListener('click', e => { if (e.target === aboutOverlay) closeAbout(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAbout(); });
+
+    function closeAbout() { aboutOverlay.classList.remove('open'); }
+
+    // ── Export / Import ────────────────────────────────────────────────────
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const text = serializeLearnings(parsedData);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
+      a.download = 'vault.md';
+      a.click();
+    });
+
+    document.getElementById('import-btn').addEventListener('click', () => {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.md,text/markdown,text/plain';
+      inp.addEventListener('change', () => {
+        const file = inp.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          const text = e.target.result;
+          const imported = parseLearnings(text);
+          if (imported.categories.length === 0 && !text.includes('## Category:')) {
+            alert('No categories found in file. Make sure it uses the vault.md format.'); return;
+          }
+          if (!confirm(`Import will replace all current data with the file's content.\n\nContinue?`)) return;
+          parsedData = imported;
+          saveToStorage();
+          renderTopicList(parsedData.categories);
+          const allTopics = parsedData.categories.flatMap(c => c.topics);
+          if (allTopics.length > 0) {
+            const first = allTopics[0];
+            selectItem(first.name, first.subtopics[0]?.name || null);
+          } else {
+            contentPanel.innerHTML = '<p class="placeholder">Select a topic to view learnings.</p>';
+          }
+        };
+        reader.readAsText(file);
+      });
+      inp.click();
+    });
+
+    // ── Bootstrap ──────────────────────────────────────────────────────────
+
+    function bootWithText(text) {
+      parsedData = parseLearnings(text);
+      renderTopicList(parsedData.categories);
+      const allTopics = parsedData.categories.flatMap(c => c.topics);
+      if (allTopics.length === 0) {
+        contentPanel.innerHTML = '<p class="placeholder">Select a topic to view learnings.</p>';
+        return;
+      }
+      const first = allTopics[0];
+      selectItem(first.name, first.subtopics[0]?.name || null);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        bootWithText(stored);
+        return;
+      }
+      // First run: migrate from vault.md if server is available
+      fetch('vault.md')
+        .then(res => { if (!res.ok) throw new Error(); return res.text(); })
+        .then(text => { saveToStorage(); bootWithText(text); })
+        .catch(() => bootWithText(''));
+    });
+  </script>
+</body>
+</html>
