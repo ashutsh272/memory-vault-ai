@@ -1,4 +1,4 @@
-# My Memory Vault
+# Memory Vault AI
 
 A minimal, local-first vault for notes and learnings organised by **category → topic**. No build step, no framework — edit one Markdown file and refresh.
 
