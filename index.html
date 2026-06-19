@@ -27,8 +27,8 @@
 
     header {
       padding: 10px 24px;
-      background: #ffffff;
-      border-bottom: 1px solid #dde8f0;
+      background: #e6eff8;
+      border-bottom: 1px solid #ccdaeb;
       font-size: 1.1rem;
       font-weight: 700;
       color: #0e1c3d;
@@ -171,8 +171,8 @@
       width: 30%;
       min-width: 200px;
       max-width: 300px;
-      background: #fff;
-      border-right: 1px solid #dde8f0;
+      background: #e8f1fa;
+      border-right: 1px solid #c8dcee;
       overflow-y: auto;
       padding: 0 0 16px;
     }
@@ -183,9 +183,9 @@
       padding: 10px 8px 8px 16px;
       position: sticky;
       top: 0;
-      background: #fff;
+      background: #e8f1fa;
       z-index: 1;
-      border-bottom: 1px solid #eef2f6;
+      border-bottom: 1px solid #c8dcee;
     }
     #topic-list-hd h2 {
       font-size: 0.68rem;
@@ -282,7 +282,7 @@
       border-radius: 4px;
       margin: 0 4px;
     }
-    .category-header:hover { background: #eef3fa; }
+    .category-header:hover { background: #d8e9f6; }
 
     /* Fold chevron */
     .cat-chevron {
@@ -350,7 +350,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .topic-item:hover { background: #e8f1fa; color: #0e1c3d; }
+    .topic-item:hover { background: #d8e9f6; color: #0e1c3d; }
     .topic-item:focus-visible { outline: 2px solid #5c4daa; outline-offset: -2px; }
     .topic-item.active {
       background: linear-gradient(90deg, #e4eefa 0%, #ece8ff 100%);
@@ -380,7 +380,7 @@
       cursor: pointer;
       user-select: none;
     }
-    .topic-expandable-hd:hover { background: #eef3fa; }
+    .topic-expandable-hd:hover { background: #d8e9f6; }
 
     .topic-chevron {
       font-size: 0.6rem;
@@ -436,7 +436,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .subtopic-item:hover { background: #e8f1fa; color: #0e1c3d; }
+    .subtopic-item:hover { background: #d8e9f6; color: #0e1c3d; }
     .subtopic-item:focus-visible { outline: 2px solid #5c4daa; outline-offset: -2px; }
     .subtopic-item.active {
       background: linear-gradient(90deg, #e4eefa 0%, #ece8ff 100%);
@@ -487,7 +487,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 28px 32px;
-      background: transparent;
+      background: rgba(255,255,255,0.55);
     }
     #content-panel .placeholder {
       color: #aaa;
@@ -650,6 +650,84 @@
     .edit-form-btn.cancel { background: #f0f0f2; color: #555; }
     .edit-form-btn.cancel:hover { background: #e4e4e8; }
 
+    /* ── Image upload ───────────────────────────────────── */
+    .img-upload-section { align-items: flex-start; }
+    .img-upload-section .edit-label { padding-top: 8px; }
+    .img-upload-right { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+    .img-upload-btn {
+      font-size: 0.78rem;
+      color: #5c4daa;
+      background: #ece8ff;
+      border: 1px solid #c8bdee;
+      border-radius: 5px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      align-self: flex-start;
+      transition: background 0.15s;
+    }
+    .img-upload-btn:hover { background: #ddd6ff; }
+
+    .img-preview-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .img-thumb-wrap { position: relative; display: inline-block; }
+    .img-thumb {
+      width: 72px; height: 72px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #dde8f0;
+      cursor: pointer;
+      display: block;
+    }
+    .img-thumb-del {
+      position: absolute; top: -5px; right: -5px;
+      background: #c0392b; color: #fff; border: none;
+      border-radius: 50%; width: 18px; height: 18px;
+      font-size: 0.7rem; line-height: 1;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center; padding: 0;
+    }
+
+    /* Image gallery in expanded entry */
+    .entry-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 16px 14px 112px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .entry-img {
+      width: 130px; height: 96px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #dde8f0;
+      cursor: zoom-in;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .entry-img:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(14,28,61,0.12); }
+
+    /* Lightbox */
+    #img-lightbox {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    #img-lightbox.open { display: flex; }
+    #img-lightbox-img {
+      max-width: 90vw; max-height: 90vh;
+      border-radius: 10px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      cursor: default;
+    }
+
     /* ── Error / empty ──────────────────────────────────── */
     .state-msg {
       background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px;
@@ -756,6 +834,11 @@
     </div>
   </div>
 
+  <!-- Lightbox for full-size image view -->
+  <div id="img-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <img id="img-lightbox-img" src="" alt="Screenshot">
+  </div>
+
   <div class="layout">
     <nav id="topic-list" aria-label="Categories">
       <div id="topic-list-hd">
@@ -848,7 +931,35 @@
 
     // ── Serialise / Storage ────────────────────────────────────────────────
 
-    const STORAGE_KEY = 'memoryvault-data';
+    const STORAGE_KEY  = 'memoryvault-data';
+    const IMAGES_KEY   = 'memoryvault-images';
+
+    function saveImages(entryDate, images) {
+      const all = JSON.parse(localStorage.getItem(IMAGES_KEY) || '{}');
+      if (images && images.length > 0) all[entryDate] = images;
+      else delete all[entryDate];
+      localStorage.setItem(IMAGES_KEY, JSON.stringify(all));
+    }
+    function getImages(entryDate) {
+      const all = JSON.parse(localStorage.getItem(IMAGES_KEY) || '{}');
+      return all[entryDate] || [];
+    }
+    function deleteImages(entryDate) {
+      const all = JSON.parse(localStorage.getItem(IMAGES_KEY) || '{}');
+      delete all[entryDate];
+      localStorage.setItem(IMAGES_KEY, JSON.stringify(all));
+    }
+
+    function openLightbox(src) {
+      const lb = document.getElementById('img-lightbox');
+      document.getElementById('img-lightbox-img').src = src;
+      lb.classList.add('open');
+    }
+    function closeLightbox() {
+      const lb = document.getElementById('img-lightbox');
+      lb.classList.remove('open');
+      document.getElementById('img-lightbox-img').src = '';
+    }
 
     function serializeLearnings(data) {
       const out = ['# My Memory Vault\n'];
@@ -1684,6 +1795,7 @@
           card.style.opacity = '0'; card.style.transform = 'translateX(8px)';
           setTimeout(() => {
             card.remove();
+            deleteImages(entry.date);
             const t = findTopic(topic.name);
             if (subtopicName) {
               const sub = t?.topic.subtopics.find(s => s.name === subtopicName);
@@ -1731,9 +1843,12 @@
 
       actions.appendChild(editBtn);
       actions.appendChild(delBtn);
+      const entryImages = getImages(entry.date);
+      const hasExpandable = !!(entry.detail || entryImages.length > 0);
+
       header.appendChild(dateEl);
       header.appendChild(summaryEl);
-      if (entry.detail) header.appendChild(chevron);
+      if (hasExpandable) header.appendChild(chevron);
       header.appendChild(actions);
 
       const toggle = () => {
@@ -1741,7 +1856,7 @@
         const expanded = card.classList.toggle('expanded');
         header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       };
-      if (entry.detail) {
+      if (hasExpandable) {
         header.addEventListener('click', toggle);
         header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
       } else {
@@ -1750,7 +1865,22 @@
 
       const detailEl = document.createElement('div');
       detailEl.className = 'entry-detail';
-      detailEl.textContent = entry.detail || '(no additional detail)';
+      detailEl.textContent = entry.detail || (entryImages.length ? '' : '(no additional detail)');
+
+      if (entryImages.length > 0) {
+        const imgGallery = document.createElement('div');
+        imgGallery.className = 'entry-images';
+        entryImages.forEach(src => {
+          const img = document.createElement('img');
+          img.className = 'entry-img';
+          img.src = src;
+          img.alt = 'Screenshot';
+          img.addEventListener('click', e => { e.stopPropagation(); openLightbox(src); });
+          imgGallery.appendChild(img);
+        });
+        card.appendChild(detailEl);
+        card.appendChild(imgGallery);
+      }
 
       // Edit form
       const editForm = document.createElement('div');
@@ -1776,20 +1906,6 @@
 
       const saveFormBtn = document.createElement('button');
       saveFormBtn.className = 'edit-form-btn save'; saveFormBtn.textContent = 'Save';
-      saveFormBtn.addEventListener('click', async () => {
-        const newSummary = summaryInput.value.trim();
-        const newDetail  = detailInput.value;
-        if (!newSummary) { summaryInput.focus(); return; }
-        const data = await apiPost('/api/update-entry', {
-          topic: topic.name, subtopic: subtopicName || '', date: entry.date, summary: newSummary, detail: newDetail,
-        });
-        if (data.ok) {
-          entry.summary = newSummary; entry.detail = newDetail;
-          card.replaceWith(makeEntryCard(topic, entry, subtopicName));
-        } else {
-          alert('Save failed: ' + (data.error || 'unknown'));
-        }
-      });
 
       [summaryInput, detailInput].forEach(el => {
         el.addEventListener('keydown', e => {
@@ -1798,11 +1914,83 @@
         });
       });
 
+      // Images section in edit form
+      let editImages = [...entryImages];
+      const imgEditSection = document.createElement('div');
+      imgEditSection.className = 'edit-row img-upload-section';
+      const imgEditLabel = document.createElement('span');
+      imgEditLabel.className = 'edit-label'; imgEditLabel.textContent = 'Images';
+      const imgEditRight = document.createElement('div');
+      imgEditRight.className = 'img-upload-right';
+
+      const imgEditFileInput = document.createElement('input');
+      imgEditFileInput.type = 'file'; imgEditFileInput.accept = 'image/*';
+      imgEditFileInput.multiple = true; imgEditFileInput.style.display = 'none';
+
+      const imgEditAddBtn = document.createElement('button');
+      imgEditAddBtn.type = 'button'; imgEditAddBtn.className = 'img-upload-btn';
+      imgEditAddBtn.textContent = '📷 Add Images';
+      imgEditAddBtn.addEventListener('click', () => imgEditFileInput.click());
+
+      const editPreviewRow = document.createElement('div');
+      editPreviewRow.className = 'img-preview-row';
+
+      // Render existing images in edit form
+      entryImages.forEach((src, idx) => {
+        const wrap = document.createElement('div'); wrap.className = 'img-thumb-wrap';
+        const thumb = document.createElement('img'); thumb.className = 'img-thumb'; thumb.src = src;
+        thumb.addEventListener('click', () => openLightbox(src));
+        const del = document.createElement('button'); del.className = 'img-thumb-del'; del.textContent = '×';
+        del.addEventListener('click', () => { editImages = editImages.filter(s => s !== src); wrap.remove(); });
+        wrap.appendChild(thumb); wrap.appendChild(del); editPreviewRow.appendChild(wrap);
+      });
+
+      imgEditFileInput.addEventListener('change', () => {
+        for (const file of imgEditFileInput.files) {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const src = ev.target.result;
+            editImages.push(src);
+            const wrap = document.createElement('div'); wrap.className = 'img-thumb-wrap';
+            const thumb = document.createElement('img'); thumb.className = 'img-thumb'; thumb.src = src;
+            thumb.addEventListener('click', () => openLightbox(src));
+            const del = document.createElement('button'); del.className = 'img-thumb-del'; del.textContent = '×';
+            del.addEventListener('click', () => { editImages = editImages.filter(s => s !== src); wrap.remove(); });
+            wrap.appendChild(thumb); wrap.appendChild(del); editPreviewRow.appendChild(wrap);
+          };
+          reader.readAsDataURL(file);
+        }
+        imgEditFileInput.value = '';
+      });
+
+      imgEditRight.appendChild(imgEditFileInput);
+      imgEditRight.appendChild(imgEditAddBtn);
+      imgEditRight.appendChild(editPreviewRow);
+      imgEditSection.appendChild(imgEditLabel);
+      imgEditSection.appendChild(imgEditRight);
+
+      saveFormBtn.addEventListener('click', async () => {
+        const newSummary = summaryInput.value.trim();
+        const newDetail  = detailInput.value;
+        if (!newSummary) { summaryInput.focus(); return; }
+        const data = await apiPost('/api/update-entry', {
+          topic: topic.name, subtopic: subtopicName || '', date: entry.date, summary: newSummary, detail: newDetail,
+        });
+        if (data.ok) {
+          saveImages(entry.date, editImages);
+          entry.summary = newSummary; entry.detail = newDetail;
+          card.replaceWith(makeEntryCard(topic, entry, subtopicName));
+        } else {
+          alert('Save failed: ' + (data.error || 'unknown'));
+        }
+      });
+
       formActions.appendChild(cancelFormBtn); formActions.appendChild(saveFormBtn);
-      editForm.appendChild(summaryRow); editForm.appendChild(detailRow); editForm.appendChild(formActions);
+      editForm.appendChild(summaryRow); editForm.appendChild(detailRow);
+      editForm.appendChild(imgEditSection); editForm.appendChild(formActions);
 
       card.appendChild(header);
-      card.appendChild(detailEl);
+      if (entryImages.length === 0) card.appendChild(detailEl);
       card.appendChild(editForm);
       return card;
     }
@@ -2192,6 +2380,51 @@
       detailInput.placeholder = 'Optional — expanded notes (each line becomes an indented bullet)';
       detailRow.appendChild(detailLabel); detailRow.appendChild(detailInput);
 
+      // Image upload section
+      const pendingImages = [];
+      const imgSection = document.createElement('div');
+      imgSection.className = 'edit-row img-upload-section';
+      const imgLabel = document.createElement('span');
+      imgLabel.className = 'edit-label'; imgLabel.textContent = 'Images';
+      const imgRight = document.createElement('div');
+      imgRight.className = 'img-upload-right';
+
+      const imgFileInput = document.createElement('input');
+      imgFileInput.type = 'file'; imgFileInput.accept = 'image/*';
+      imgFileInput.multiple = true; imgFileInput.style.display = 'none';
+
+      const imgAddBtn = document.createElement('button');
+      imgAddBtn.type = 'button'; imgAddBtn.className = 'img-upload-btn';
+      imgAddBtn.textContent = '📷 Add Images';
+      imgAddBtn.addEventListener('click', () => imgFileInput.click());
+
+      const previewRow = document.createElement('div');
+      previewRow.className = 'img-preview-row';
+
+      imgFileInput.addEventListener('change', () => {
+        for (const file of imgFileInput.files) {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const src = ev.target.result;
+            pendingImages.push(src);
+            const wrap = document.createElement('div'); wrap.className = 'img-thumb-wrap';
+            const thumb = document.createElement('img'); thumb.className = 'img-thumb'; thumb.src = src;
+            const del = document.createElement('button'); del.className = 'img-thumb-del'; del.textContent = '×';
+            del.addEventListener('click', () => {
+              const idx = pendingImages.indexOf(src);
+              if (idx > -1) pendingImages.splice(idx, 1);
+              wrap.remove();
+            });
+            wrap.appendChild(thumb); wrap.appendChild(del); previewRow.appendChild(wrap);
+          };
+          reader.readAsDataURL(file);
+        }
+        imgFileInput.value = '';
+      });
+
+      imgRight.appendChild(imgFileInput); imgRight.appendChild(imgAddBtn); imgRight.appendChild(previewRow);
+      imgSection.appendChild(imgLabel); imgSection.appendChild(imgRight);
+
       const formActions = document.createElement('div'); formActions.className = 'edit-form-actions';
 
       const cancelBtn = document.createElement('button');
@@ -2207,6 +2440,7 @@
         const date = nowTimestamp(); // auto-capture current datetime
         const data = await apiPost('/api/add-entry', { topic: topic.name, subtopic: subtopic?.name || '', date, summary, detail });
         if (data.ok) {
+          if (pendingImages.length > 0) saveImages(date, pendingImages);
           const newEntry = { date, summary, detail };
           const targetEntries = subtopic ? subtopic.entries : topic.entries;
           targetEntries.unshift(newEntry);
@@ -2230,7 +2464,7 @@
 
       formActions.appendChild(cancelBtn); formActions.appendChild(saveBtn);
       card.appendChild(summaryRow);
-      card.appendChild(detailRow); card.appendChild(formActions);
+      card.appendChild(detailRow); card.appendChild(imgSection); card.appendChild(formActions);
 
       // Insert after the category tag
       const tag = contentPanel.querySelector('.panel-category-tag');
@@ -2253,9 +2487,14 @@
     });
     document.getElementById('about-close').addEventListener('click', closeAbout);
     aboutOverlay.addEventListener('click', e => { if (e.target === aboutOverlay) closeAbout(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAbout(); });
 
     function closeAbout() { aboutOverlay.classList.remove('open'); }
+
+    // Lightbox
+    document.getElementById('img-lightbox').addEventListener('click', e => {
+      if (e.target !== document.getElementById('img-lightbox-img')) closeLightbox();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAbout(); closeLightbox(); } });
 
     // ── Export / Import ────────────────────────────────────────────────────
 
