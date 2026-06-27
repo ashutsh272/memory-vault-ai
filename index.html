@@ -736,6 +736,60 @@
       padding: 14px 18px; color: #5a4000; font-size: 0.9rem; margin-top: 40px;
     }
 
+    /* ── HTML Page section ───────────────────────────────── */
+    .html-section { margin-bottom: 16px; }
+
+    .html-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: #0891b2;
+      background: #e0f2fe;
+      border: 1.5px dashed #7dd3fc;
+      border-radius: 8px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      margin-bottom: 16px;
+    }
+    .html-upload-btn:hover { background: #bae6fd; }
+
+    .html-section-box {
+      border: 1px solid #c5d8e8;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      background: #fff;
+    }
+
+    .html-section-hd {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: #f0f7ff;
+      border-bottom: 1px solid #c5d8e8;
+      gap: 8px;
+    }
+    .html-section-title {
+      flex: 1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0891b2;
+    }
+    .html-section-actions { display: flex; gap: 4px; align-items: center; }
+
+    .html-iframe {
+      display: block;
+      width: 100%;
+      height: 520px;
+      border: none;
+      background: #fff;
+    }
+
     /* ── Responsive ─────────────────────────────────────── */
     #mobile-back-btn {
       display: none;
@@ -792,6 +846,7 @@
       .entry-detail { padding: 10px 16px 14px; }
       .entry-images { padding: 10px 16px 14px; }
       .entry-img { width: 100%; height: auto; max-width: 100%; }
+      .html-iframe { height: 360px; }
     }
   </style>
 </head>
@@ -998,6 +1053,31 @@
       localStorage.setItem(IMAGES_KEY, JSON.stringify(all));
     }
 
+    // ── HTML page storage ──────────────────────────────────────────────────
+    const HTML_PAGES_KEY = 'memoryvault-html-pages';
+
+    function topicHtmlKey(topicName, subtopicName = null) {
+      return JSON.stringify(subtopicName ? [topicName, subtopicName] : [topicName]);
+    }
+    function saveTopicHtml(key, html) {
+      const all = JSON.parse(localStorage.getItem(HTML_PAGES_KEY) || '{}');
+      if (html) all[key] = html; else delete all[key];
+      localStorage.setItem(HTML_PAGES_KEY, JSON.stringify(all));
+    }
+    function getTopicHtml(key) {
+      return (JSON.parse(localStorage.getItem(HTML_PAGES_KEY) || '{}'))[key] || null;
+    }
+    function deleteTopicHtml(key) {
+      const all = JSON.parse(localStorage.getItem(HTML_PAGES_KEY) || '{}');
+      delete all[key];
+      localStorage.setItem(HTML_PAGES_KEY, JSON.stringify(all));
+    }
+    function renameTopicHtml(oldKey, newKey) {
+      const all = JSON.parse(localStorage.getItem(HTML_PAGES_KEY) || '{}');
+      if (all[oldKey] !== undefined) { all[newKey] = all[oldKey]; delete all[oldKey]; }
+      localStorage.setItem(HTML_PAGES_KEY, JSON.stringify(all));
+    }
+
     function openLightbox(src) {
       const lb = document.getElementById('img-lightbox');
       document.getElementById('img-lightbox-img').src = src;
@@ -1197,6 +1277,10 @@
           const section = topicListEl.querySelector(`.category-section[data-category="${CSS.escape(name)}"]`);
           if (section) section.remove();
           localStorage.removeItem('cat-collapsed:' + name);
+          if (cat) cat.topics.forEach(t => {
+            deleteTopicHtml(topicHtmlKey(t.name));
+            t.subtopics.forEach(s => deleteTopicHtml(topicHtmlKey(t.name, s.name)));
+          });
           parsedData.categories = parsedData.categories.filter(c => c.name !== name);
           // If active topic was in this category, clear content panel
           const stillExists = findTopic(activeTopicName);
@@ -1315,6 +1399,7 @@
         if (data.ok) {
           const section = row.closest('.category-section');
           row.remove();
+          deleteTopicHtml(topicHtmlKey(name));
           parsedData.categories.forEach(c => { c.topics = c.topics.filter(t => t.name !== name); });
           if (data.categoryDeleted && section) {
             localStorage.removeItem('cat-collapsed:' + section.dataset.category);
@@ -1390,6 +1475,8 @@
         if (data.ok) {
           const catSection = section.closest('.category-section');
           section.remove();
+          deleteTopicHtml(topicHtmlKey(topicObj.name));
+          topicObj.subtopics.forEach(s => deleteTopicHtml(topicHtmlKey(topicObj.name, s.name)));
           parsedData.categories.forEach(c => { c.topics = c.topics.filter(t => t.name !== topicObj.name); });
           if (data.categoryDeleted && catSection) {
             localStorage.removeItem('cat-collapsed:' + catSection.dataset.category);
@@ -1457,6 +1544,7 @@
         if (!confirm(`Delete subtopic "${subName}" and all its entries?\n\nThis cannot be undone.`)) return;
         const data = await apiPost('/api/delete-subtopic', { topic: topicName, subtopic: subName });
         if (data.ok) {
+          deleteTopicHtml(topicHtmlKey(topicName, subName));
           const topicInfo = findTopic(topicName);
           if (topicInfo) topicInfo.topic.subtopics = topicInfo.topic.subtopics.filter(s => s.name !== subName);
           const catSection = row.closest('.category-section');
@@ -1520,6 +1608,7 @@
         if (!newName || newName === oldName) { doCancel(); return; }
         const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
         if (data.ok) {
+          renameTopicHtml(topicHtmlKey(oldName), topicHtmlKey(newName));
           const found = findTopic(oldName);
           if (found) found.topic.name = newName;
           const section = topicListEl.querySelector(`.topic-section[data-name="${CSS.escape(oldName)}"]`);
@@ -1573,6 +1662,7 @@
         if (!newName || newName === oldName) { doCancel(); return; }
         const data = await apiPost('/api/rename-subtopic', { topic: topicName, subtopic: oldName, newName });
         if (data.ok) {
+          renameTopicHtml(topicHtmlKey(topicName, oldName), topicHtmlKey(topicName, newName));
           const found = findSubtopic(topicName, oldName);
           if (found) found.subtopic.name = newName;
           if (activeSubtopicName === oldName && activeTopicName === topicName) activeSubtopicName = newName;
@@ -1614,6 +1704,7 @@
         if (!newName || newName === oldName) { doCancel(); return; }
         const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
         if (data.ok) {
+          renameTopicHtml(topicHtmlKey(oldName), topicHtmlKey(newName));
           parsedData.categories.forEach(c => {
             const t = c.topics.find(t => t.name === oldName);
             if (t) t.name = newName;
@@ -1643,6 +1734,103 @@
       actions.appendChild(cancelBtn);
       actions.style.opacity = '1';
       input.focus(); input.select();
+    }
+
+    // ── HTML page UI ───────────────────────────────────────────────────────
+
+    function makeHtmlSection(htmlKey) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'html-section';
+      const html = getTopicHtml(htmlKey);
+      if (html) renderHtmlFrame(wrapper, htmlKey, html);
+      else renderHtmlUploadPrompt(wrapper, htmlKey);
+      return wrapper;
+    }
+
+    function renderHtmlUploadPrompt(wrapper, htmlKey) {
+      wrapper.innerHTML = '';
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = '.html,.htm,text/html';
+      fileInput.style.display = 'none';
+      const btn = document.createElement('button');
+      btn.className = 'html-upload-btn';
+      btn.textContent = '📄 Attach HTML Page';
+      btn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => { saveTopicHtml(htmlKey, ev.target.result); renderHtmlFrame(wrapper, htmlKey, ev.target.result); };
+        reader.readAsText(file);
+        fileInput.value = '';
+      });
+      wrapper.appendChild(fileInput);
+      wrapper.appendChild(btn);
+    }
+
+    function renderHtmlFrame(wrapper, htmlKey, htmlContent) {
+      wrapper.innerHTML = '';
+      const box = document.createElement('div');
+      box.className = 'html-section-box';
+
+      const hd = document.createElement('div');
+      hd.className = 'html-section-hd';
+
+      const title = document.createElement('span');
+      title.className = 'html-section-title';
+      title.textContent = 'HTML Page';
+
+      const acts = document.createElement('div');
+      acts.className = 'html-section-actions';
+
+      // Replace
+      const replaceInput = document.createElement('input');
+      replaceInput.type = 'file'; replaceInput.accept = '.html,.htm,text/html';
+      replaceInput.style.display = 'none';
+      replaceInput.addEventListener('change', () => {
+        const file = replaceInput.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => { saveTopicHtml(htmlKey, ev.target.result); iframe.srcdoc = ev.target.result; };
+        reader.readAsText(file);
+        replaceInput.value = '';
+      });
+      const replaceBtn = document.createElement('button');
+      replaceBtn.className = 'icon-btn edit'; replaceBtn.title = 'Replace HTML'; replaceBtn.textContent = '↑ Replace';
+      replaceBtn.addEventListener('click', () => replaceInput.click());
+
+      // Remove
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'icon-btn del'; removeBtn.title = 'Remove HTML page'; removeBtn.textContent = '−';
+      removeBtn.addEventListener('click', () => {
+        if (!confirm('Remove the attached HTML page?')) return;
+        deleteTopicHtml(htmlKey);
+        renderHtmlUploadPrompt(wrapper, htmlKey);
+      });
+
+      // Collapse/expand
+      let visible = true;
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'icon-btn cancel'; toggleBtn.title = 'Collapse'; toggleBtn.textContent = '▼';
+      toggleBtn.addEventListener('click', () => {
+        visible = !visible;
+        iframe.style.display = visible ? 'block' : 'none';
+        toggleBtn.textContent = visible ? '▼' : '▶';
+        toggleBtn.title = visible ? 'Collapse' : 'Expand';
+      });
+
+      const iframe = document.createElement('iframe');
+      iframe.className = 'html-iframe';
+      iframe.srcdoc = htmlContent;
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups');
+
+      acts.appendChild(replaceInput);
+      acts.appendChild(replaceBtn);
+      acts.appendChild(removeBtn);
+      acts.appendChild(toggleBtn);
+      hd.appendChild(title);
+      hd.appendChild(acts);
+      box.appendChild(hd);
+      box.appendChild(iframe);
+      wrapper.appendChild(box);
     }
 
     // ── Right panel ────────────────────────────────────────────────────────
@@ -1701,6 +1889,8 @@
       tag.textContent = subtopic ? `${categoryName} › ${topic.name}` : categoryName;
       contentPanel.appendChild(tag);
 
+      contentPanel.appendChild(makeHtmlSection(topicHtmlKey(topic.name, subtopic?.name ?? null)));
+
       if (target.entries.length === 0) {
         const p = document.createElement('p'); p.className = 'no-entries-msg'; p.style.color = '#aaa'; p.textContent = 'No entries yet.';
         contentPanel.appendChild(p);
@@ -1728,6 +1918,7 @@
         if (!newName || newName === oldName) { doCancel(); return; }
         const data = await apiPost('/api/rename-topic', { topic: oldName, newName });
         if (data.ok) {
+          renameTopicHtml(topicHtmlKey(oldName), topicHtmlKey(newName));
           topic.name = newName;
           if (activeTopicName === oldName) activeTopicName = newName;
           const el = topicListEl.querySelector(`.topic-row[data-name="${CSS.escape(oldName)}"], .topic-section[data-name="${CSS.escape(oldName)}"]`);
@@ -1778,6 +1969,7 @@
         if (!newName || newName === oldName) { doCancel(); return; }
         const data = await apiPost('/api/rename-subtopic', { topic: topic.name, subtopic: oldName, newName });
         if (data.ok) {
+          renameTopicHtml(topicHtmlKey(topic.name, oldName), topicHtmlKey(topic.name, newName));
           subtopic.name = newName;
           if (activeSubtopicName === oldName) activeSubtopicName = newName;
           const row = topicListEl.querySelector(`.subtopic-row[data-name="${CSS.escape(oldName)}"]`);
