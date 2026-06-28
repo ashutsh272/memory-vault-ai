@@ -736,6 +736,152 @@
       padding: 14px 18px; color: #5a4000; font-size: 0.9rem; margin-top: 40px;
     }
 
+    /* ── CV Editor ───────────────────────────────────────── */
+    #cv-nav-item {
+      padding: 8px 10px 6px;
+      border-bottom: 1px solid #ddd8d0;
+    }
+    #cv-nav-btn {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-left: 3px solid transparent;
+      padding: 7px 8px 7px 14px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #5a4030;
+      font-family: inherit;
+      border-radius: 3px;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    #cv-nav-btn:hover { background: #e4ddd5; color: #3d2a1a; }
+    #cv-nav-btn.active { background: #e0f2fe; border-left-color: #0891b2; color: #0e7490; }
+
+    .cv-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 0 14px;
+      border-bottom: 1px solid #e4ddd4;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .cv-toolbar-title { font-size: 1rem; font-weight: 700; color: #2c1a0e; flex: 1; min-width: 80px; }
+    .cv-action-btn {
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .cv-action-btn.primary { background: #0891b2; color: #fff; }
+    .cv-action-btn.primary:hover { background: #0e7490; }
+    .cv-action-btn.secondary { background: #f0ede8; color: #3d2a1a; border: 1px solid #ddd8d0; }
+    .cv-action-btn.secondary:hover { background: #e4ddd5; }
+
+    .cv-pdf-section {
+      border: 1px solid #c5d8e8;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .cv-pdf-hd {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: #f0f7ff;
+      border-bottom: 1px solid #c5d8e8;
+      gap: 8px;
+    }
+    .cv-pdf-title {
+      flex: 1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0891b2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cv-pdf-frame { display: block; width: 100%; height: 500px; border: none; }
+
+    .cv-doc-wrap { background: #f0ede8; padding: 20px; border-radius: 8px; margin-top: 8px; }
+    .cv-doc {
+      background: #fff;
+      padding: 48px 52px;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      outline: none;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 10.5pt;
+      color: #1a1a1a;
+      line-height: 1.55;
+      max-width: 760px;
+      margin: 0 auto;
+      min-height: 300px;
+      caret-color: #0891b2;
+    }
+    .cv-doc:focus-within { box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 3px rgba(8,145,178,0.15); }
+
+    .cv-doc .cv-name {
+      font-size: 22pt;
+      font-weight: bold;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #0891b2;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .cv-doc .cv-contact-line {
+      font-size: 9pt;
+      color: #555;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 20px;
+    }
+    .cv-doc .cv-section { margin-bottom: 18px; }
+    .cv-doc .cv-section-title {
+      font-size: 8.5pt;
+      font-weight: bold;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #0891b2;
+      border-bottom: 1.5px solid #0891b2;
+      padding-bottom: 3px;
+      margin-bottom: 10px;
+    }
+    .cv-doc .cv-entry { margin-bottom: 12px; }
+    .cv-doc .cv-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .cv-doc .cv-entry-title {
+      font-weight: bold;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 10.5pt;
+    }
+    .cv-doc .cv-entry-company { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #444; font-size: 10pt; }
+    .cv-doc .cv-entry-date { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 9pt; color: #666; white-space: nowrap; flex-shrink: 0; }
+    .cv-doc ul { margin: 4px 0 0 18px; padding: 0; }
+    .cv-doc li { margin-bottom: 2px; }
+    .cv-doc p { margin: 4px 0; }
+
+    @media (max-width: 640px) {
+      .cv-doc { padding: 20px 16px; }
+      .cv-doc-wrap { padding: 8px; }
+      .cv-pdf-frame { height: 300px; }
+    }
+
     /* ── HTML Page section ───────────────────────────────── */
     .html-section { margin-bottom: 16px; }
 
@@ -944,6 +1090,9 @@
 
   <div class="layout">
     <nav id="topic-list" aria-label="Categories">
+      <div id="cv-nav-item">
+        <button id="cv-nav-btn">📝 CV Editor</button>
+      </div>
       <div id="topic-list-hd">
         <h2>Categories</h2>
         <button id="add-cat-btn" class="icon-btn add" title="Add category">+ Category</button>
@@ -2249,6 +2398,10 @@
     // ── Selection ──────────────────────────────────────────────────────────
 
     function selectItem(topicName, subtopicName = null, { switchPanel = true } = {}) {
+      // Auto-save CV content if we're switching away from the CV editor
+      const cvDoc = contentPanel.querySelector('.cv-doc');
+      if (cvDoc) localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+      document.getElementById('cv-nav-btn').classList.remove('active');
       activeTopicName = topicName;
       activeSubtopicName = subtopicName;
       if (isMobile() && switchPanel) layoutEl.classList.add('showing-content');
@@ -2731,6 +2884,7 @@
     const aboutOverlay = document.getElementById('about-overlay');
     const aboutModal   = document.getElementById('about-modal');
 
+    document.getElementById('cv-nav-btn').addEventListener('click', renderCvEditor);
     document.getElementById('add-cat-btn').addEventListener('click', showAddCategoryForm);
 
     document.getElementById('about-btn').addEventListener('click', () => {
@@ -2786,6 +2940,226 @@
       });
       inp.click();
     });
+
+    // ── CV Editor ─────────────────────────────────────────────────────────
+
+    const CV_STORAGE_KEY = 'memoryvault-cv';
+
+    function getCvTemplate() {
+      return `<div class="cv-name">Your Full Name</div>
+<div class="cv-contact-line">your@email.com &nbsp;·&nbsp; +1 234 567 890 &nbsp;·&nbsp; City, Country &nbsp;·&nbsp; linkedin.com/in/you</div>
+
+<div class="cv-section">
+  <div class="cv-section-title">Professional Summary</div>
+  <p>Results-driven professional with X years of experience in [field]. Known for [key strengths]. Currently seeking [type of role or goal].</p>
+</div>
+
+<div class="cv-section">
+  <div class="cv-section-title">Experience</div>
+  <div class="cv-entry">
+    <div class="cv-entry-header">
+      <div><span class="cv-entry-title">Job Title</span><span class="cv-entry-company"> · Company Name · Location</span></div>
+      <span class="cv-entry-date">Jan 2022 – Present</span>
+    </div>
+    <ul>
+      <li>Key achievement or responsibility #1</li>
+      <li>Key achievement or responsibility #2</li>
+      <li>Key achievement or responsibility #3</li>
+    </ul>
+  </div>
+  <div class="cv-entry">
+    <div class="cv-entry-header">
+      <div><span class="cv-entry-title">Previous Job Title</span><span class="cv-entry-company"> · Previous Company · Location</span></div>
+      <span class="cv-entry-date">Jun 2019 – Dec 2021</span>
+    </div>
+    <ul>
+      <li>Key achievement or responsibility #1</li>
+      <li>Key achievement or responsibility #2</li>
+    </ul>
+  </div>
+</div>
+
+<div class="cv-section">
+  <div class="cv-section-title">Education</div>
+  <div class="cv-entry">
+    <div class="cv-entry-header">
+      <div><span class="cv-entry-title">Degree Name</span><span class="cv-entry-company"> · University Name</span></div>
+      <span class="cv-entry-date">2015 – 2019</span>
+    </div>
+    <p>Relevant coursework, honours, or notable achievements (optional)</p>
+  </div>
+</div>
+
+<div class="cv-section">
+  <div class="cv-section-title">Skills</div>
+  <p><strong>Technical:</strong> Skill 1, Skill 2, Skill 3, Skill 4</p>
+  <p><strong>Tools:</strong> Tool A, Tool B, Tool C</p>
+  <p><strong>Languages:</strong> English (Native), Other Language (Proficient)</p>
+</div>`;
+    }
+
+    function renderCvEditor() {
+      // Deselect all topics
+      activeTopicName = null;
+      activeSubtopicName = null;
+      topicListEl.querySelectorAll('.topic-item, .subtopic-item').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      document.getElementById('cv-nav-btn').classList.add('active');
+      if (isMobile()) layoutEl.classList.add('showing-content');
+
+      contentPanel.innerHTML = '';
+
+      // Mobile back button
+      if (isMobile()) {
+        const backBtn = document.createElement('button');
+        backBtn.id = 'mobile-back-btn';
+        backBtn.textContent = '‹ Topics';
+        backBtn.addEventListener('click', () => {
+          const cvDoc = contentPanel.querySelector('.cv-doc');
+          if (cvDoc) localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+          layoutEl.classList.remove('showing-content');
+        });
+        contentPanel.appendChild(backBtn);
+      }
+
+      // Toolbar
+      const toolbar = document.createElement('div');
+      toolbar.className = 'cv-toolbar';
+
+      const toolbarTitle = document.createElement('span');
+      toolbarTitle.className = 'cv-toolbar-title';
+      toolbarTitle.textContent = 'CV Editor';
+
+      // Upload PDF
+      const pdfInput = document.createElement('input');
+      pdfInput.type = 'file'; pdfInput.accept = '.pdf,application/pdf';
+      pdfInput.style.display = 'none';
+      const uploadPdfBtn = document.createElement('button');
+      uploadPdfBtn.className = 'cv-action-btn secondary';
+      uploadPdfBtn.textContent = '📄 Upload PDF';
+      uploadPdfBtn.addEventListener('click', () => pdfInput.click());
+      pdfInput.addEventListener('change', () => {
+        const file = pdfInput.files[0]; if (!file) return;
+        showCvPdfSection(pdfContainer, URL.createObjectURL(file), file.name);
+        pdfInput.value = '';
+      });
+
+      // Save
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'cv-action-btn secondary';
+      saveBtn.textContent = '✓ Save';
+      saveBtn.addEventListener('click', () => {
+        localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+        saveBtn.textContent = '✓ Saved!';
+        setTimeout(() => { saveBtn.textContent = '✓ Save'; }, 1500);
+      });
+
+      // Download
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'cv-action-btn primary';
+      downloadBtn.textContent = '⬇ Download';
+      downloadBtn.addEventListener('click', () => downloadCv(cvDoc));
+
+      toolbar.appendChild(pdfInput);
+      toolbar.appendChild(toolbarTitle);
+      toolbar.appendChild(uploadPdfBtn);
+      toolbar.appendChild(saveBtn);
+      toolbar.appendChild(downloadBtn);
+      contentPanel.appendChild(toolbar);
+
+      // PDF reference container (filled when a PDF is uploaded)
+      const pdfContainer = document.createElement('div');
+      contentPanel.appendChild(pdfContainer);
+
+      // CV document
+      const cvDocWrap = document.createElement('div');
+      cvDocWrap.className = 'cv-doc-wrap';
+      const cvDoc = document.createElement('div');
+      cvDoc.className = 'cv-doc';
+      cvDoc.contentEditable = 'true';
+      cvDoc.spellcheck = true;
+      cvDoc.setAttribute('aria-label', 'CV document editor');
+      cvDoc.innerHTML = localStorage.getItem(CV_STORAGE_KEY) || getCvTemplate();
+      cvDocWrap.appendChild(cvDoc);
+      contentPanel.appendChild(cvDocWrap);
+    }
+
+    function showCvPdfSection(container, pdfUrl, filename) {
+      container.innerHTML = '';
+      const box = document.createElement('div');
+      box.className = 'cv-pdf-section';
+
+      const hd = document.createElement('div');
+      hd.className = 'cv-pdf-hd';
+
+      const title = document.createElement('span');
+      title.className = 'cv-pdf-title';
+      title.textContent = 'Reference: ' + filename;
+
+      const acts = document.createElement('div');
+      acts.className = 'html-section-actions';
+
+      let visible = true;
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'icon-btn cancel'; toggleBtn.title = 'Collapse'; toggleBtn.textContent = '▼';
+      toggleBtn.addEventListener('click', () => {
+        visible = !visible;
+        frame.style.display = visible ? 'block' : 'none';
+        toggleBtn.textContent = visible ? '▼' : '▶';
+        toggleBtn.title = visible ? 'Collapse' : 'Expand';
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'icon-btn del'; removeBtn.title = 'Remove PDF'; removeBtn.textContent = '−';
+      removeBtn.addEventListener('click', () => { URL.revokeObjectURL(pdfUrl); container.innerHTML = ''; });
+
+      const frame = document.createElement('iframe');
+      frame.className = 'cv-pdf-frame';
+      frame.src = pdfUrl;
+      frame.title = 'Uploaded CV PDF';
+
+      acts.appendChild(removeBtn);
+      acts.appendChild(toggleBtn);
+      hd.appendChild(title);
+      hd.appendChild(acts);
+      box.appendChild(hd);
+      box.appendChild(frame);
+      container.appendChild(box);
+    }
+
+    function downloadCv(cvDoc) {
+      const content = cvDoc.innerHTML;
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CV</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Georgia,'Times New Roman',serif;font-size:10.5pt;color:#1a1a1a;line-height:1.55;background:#fff;padding:48px 52px;max-width:800px;margin:0 auto}
+    .cv-name{font-size:22pt;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0891b2;line-height:1.2;margin-bottom:4px}
+    .cv-contact-line{font-size:9pt;color:#555;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:20px}
+    .cv-section{margin-bottom:18px}
+    .cv-section-title{font-size:8.5pt;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#0891b2;border-bottom:1.5px solid #0891b2;padding-bottom:3px;margin-bottom:10px}
+    .cv-entry{margin-bottom:12px}
+    .cv-entry-header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px}
+    .cv-entry-title{font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5pt}
+    .cv-entry-company{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#444;font-size:10pt}
+    .cv-entry-date{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9pt;color:#666;white-space:nowrap;flex-shrink:0}
+    ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:2px}p{margin:4px 0}
+    @media print{body{padding:0}@page{margin:1.5cm}}
+  </style>
+</head>
+<body>${content}</body>
+</html>`;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+      a.download = 'CV.html';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
 
     // ── Bootstrap ──────────────────────────────────────────────────────────
 
