@@ -813,73 +813,94 @@
     }
     .cv-pdf-frame { display: block; width: 100%; height: 500px; border: none; }
 
-    .cv-doc-wrap { background: #f0ede8; padding: 20px; border-radius: 8px; margin-top: 8px; }
-    .cv-doc {
-      background: #fff;
-      padding: 48px 52px;
-      border-radius: 4px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      outline: none;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 10.5pt;
-      color: #1a1a1a;
-      line-height: 1.55;
-      max-width: 760px;
-      margin: 0 auto;
-      min-height: 300px;
-      caret-color: #0891b2;
-    }
-    .cv-doc:focus-within { box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 3px rgba(8,145,178,0.15); }
-
-    .cv-doc .cv-name {
-      font-size: 22pt;
-      font-weight: bold;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #0891b2;
-      line-height: 1.2;
-      margin-bottom: 4px;
-    }
-    .cv-doc .cv-contact-line {
-      font-size: 9pt;
-      color: #555;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 20px;
-    }
-    .cv-doc .cv-section { margin-bottom: 18px; }
-    .cv-doc .cv-section-title {
-      font-size: 8.5pt;
-      font-weight: bold;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #0891b2;
-      border-bottom: 1.5px solid #0891b2;
-      padding-bottom: 3px;
-      margin-bottom: 10px;
-    }
-    .cv-doc .cv-entry { margin-bottom: 12px; }
-    .cv-doc .cv-entry-header {
+    /* CV welcome screen */
+    .cv-welcome {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 2px;
+      flex-direction: column;
+      align-items: center;
+      padding: 52px 20px;
+      text-align: center;
+      gap: 10px;
     }
-    .cv-doc .cv-entry-title {
-      font-weight: bold;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 10.5pt;
+    .cv-welcome-icon { font-size: 2.8rem; margin-bottom: 4px; }
+    .cv-welcome-title { font-size: 1.25rem; font-weight: 700; color: #2c1a0e; }
+    .cv-welcome-subtitle { font-size: 0.88rem; color: #7a6a5a; max-width: 400px; line-height: 1.6; }
+
+    /* CV split layout */
+    .cv-split { display: flex; gap: 16px; align-items: flex-start; }
+    .cv-split-left { flex: 0 0 44%; max-width: 44%; position: sticky; top: 0; }
+    .cv-split-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+    /* PDF upload prompt */
+    .cv-pdf-prompt {
+      border: 2px dashed #c5d8e8;
+      border-radius: 10px;
+      padding: 28px 16px;
+      text-align: center;
+      background: #f8fbfd;
+      color: #7a6a5a;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .cv-doc .cv-entry-company { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #444; font-size: 10pt; }
-    .cv-doc .cv-entry-date { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 9pt; color: #666; white-space: nowrap; flex-shrink: 0; }
-    .cv-doc ul { margin: 4px 0 0 18px; padding: 0; }
-    .cv-doc li { margin-bottom: 2px; }
-    .cv-doc p { margin: 4px 0; }
+    .cv-pdf-prompt:hover { border-color: #0891b2; background: #e0f2fe; color: #0e7490; }
+
+    /* Section editor cards */
+    .cv-editor-section { border: 1px solid #ddd8d0; border-radius: 10px; overflow: hidden; background: #fff; }
+    .cv-section-hd {
+      display: flex; align-items: center; padding: 9px 14px;
+      background: #f8f6f2; border-bottom: 1px solid #ddd8d0;
+    }
+    .cv-section-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #5a4030;
+    }
+    .cv-section-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* Form fields */
+    .cv-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .cv-field-label { font-size: 0.74rem; font-weight: 600; color: #7a6a5a; }
+    .cv-field-input,
+    .cv-field-textarea {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid #ddd8d0; border-radius: 6px;
+      padding: 7px 10px; font-size: 0.875rem; font-family: inherit;
+      color: #2c1a0e; background: #fafaf8; resize: vertical;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .cv-field-input:focus, .cv-field-textarea:focus {
+      outline: none; border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8,145,178,0.15); background: #fff;
+    }
+    .cv-field-textarea { min-height: 80px; }
+
+    /* Repeating entry cards */
+    .cv-entry-card {
+      border: 1px solid #e4ddd4; border-radius: 8px;
+      padding: 12px; background: #fdfcfb;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .cv-date-row { display: flex; gap: 8px; }
+    .cv-add-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; padding: 8px; border: 1.5px dashed #c5d8e8;
+      border-radius: 8px; background: none; color: #0891b2;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .cv-add-btn:hover { background: #e0f2fe; border-color: #0891b2; }
+    .cv-remove-btn {
+      background: none; border: none; color: #c0392b; font-size: 0.78rem;
+      cursor: pointer; padding: 2px 6px; border-radius: 4px; font-family: inherit;
+      align-self: flex-end;
+    }
+    .cv-remove-btn:hover { background: #fde8e8; }
 
     @media (max-width: 640px) {
-      .cv-doc { padding: 20px 16px; }
-      .cv-doc-wrap { padding: 8px; }
+      .cv-split { flex-direction: column; }
+      .cv-split-left { flex: none; max-width: 100%; width: 100%; position: static; }
       .cv-pdf-frame { height: 300px; }
+      .cv-date-row { flex-direction: column; }
     }
 
     /* ── HTML Page section ───────────────────────────────── */
@@ -2398,9 +2419,7 @@
     // ── Selection ──────────────────────────────────────────────────────────
 
     function selectItem(topicName, subtopicName = null, { switchPanel = true } = {}) {
-      // Auto-save CV content if we're switching away from the CV editor
-      const cvDoc = contentPanel.querySelector('.cv-doc');
-      if (cvDoc) localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+      if (currentCvData) saveCvData(currentCvData);
       document.getElementById('cv-nav-btn').classList.remove('active');
       activeTopicName = topicName;
       activeSubtopicName = subtopicName;
@@ -2944,62 +2963,40 @@
     // ── CV Editor ─────────────────────────────────────────────────────────
 
     const CV_STORAGE_KEY = 'memoryvault-cv';
+    let currentCvData = null;
 
-    function getCvTemplate() {
-      return `<div class="cv-name">Your Full Name</div>
-<div class="cv-contact-line">your@email.com &nbsp;·&nbsp; +1 234 567 890 &nbsp;·&nbsp; City, Country &nbsp;·&nbsp; linkedin.com/in/you</div>
+    function emptyCvData() {
+      return {
+        personal: { name: '', email: '', phone: '', location: '', linkedin: '' },
+        summary: '',
+        experience: [],
+        education: [],
+        skills: '',
+        certifications: ''
+      };
+    }
 
-<div class="cv-section">
-  <div class="cv-section-title">Professional Summary</div>
-  <p>Results-driven professional with X years of experience in [field]. Known for [key strengths]. Currently seeking [type of role or goal].</p>
-</div>
+    function loadCvData() {
+      try {
+        const raw = localStorage.getItem(CV_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.personal) return null;
+        return parsed;
+      } catch (e) { return null; }
+    }
 
-<div class="cv-section">
-  <div class="cv-section-title">Experience</div>
-  <div class="cv-entry">
-    <div class="cv-entry-header">
-      <div><span class="cv-entry-title">Job Title</span><span class="cv-entry-company"> · Company Name · Location</span></div>
-      <span class="cv-entry-date">Jan 2022 – Present</span>
-    </div>
-    <ul>
-      <li>Key achievement or responsibility #1</li>
-      <li>Key achievement or responsibility #2</li>
-      <li>Key achievement or responsibility #3</li>
-    </ul>
-  </div>
-  <div class="cv-entry">
-    <div class="cv-entry-header">
-      <div><span class="cv-entry-title">Previous Job Title</span><span class="cv-entry-company"> · Previous Company · Location</span></div>
-      <span class="cv-entry-date">Jun 2019 – Dec 2021</span>
-    </div>
-    <ul>
-      <li>Key achievement or responsibility #1</li>
-      <li>Key achievement or responsibility #2</li>
-    </ul>
-  </div>
-</div>
+    function saveCvData(data) {
+      localStorage.setItem(CV_STORAGE_KEY, JSON.stringify(data));
+    }
 
-<div class="cv-section">
-  <div class="cv-section-title">Education</div>
-  <div class="cv-entry">
-    <div class="cv-entry-header">
-      <div><span class="cv-entry-title">Degree Name</span><span class="cv-entry-company"> · University Name</span></div>
-      <span class="cv-entry-date">2015 – 2019</span>
-    </div>
-    <p>Relevant coursework, honours, or notable achievements (optional)</p>
-  </div>
-</div>
-
-<div class="cv-section">
-  <div class="cv-section-title">Skills</div>
-  <p><strong>Technical:</strong> Skill 1, Skill 2, Skill 3, Skill 4</p>
-  <p><strong>Tools:</strong> Tool A, Tool B, Tool C</p>
-  <p><strong>Languages:</strong> English (Native), Other Language (Proficient)</p>
-</div>`;
+    function hasCvData(data) {
+      if (!data) return false;
+      return !!(data.personal.name || data.summary || data.experience.length ||
+                data.education.length || data.skills || data.certifications);
     }
 
     function renderCvEditor() {
-      // Deselect all topics
       activeTopicName = null;
       activeSubtopicName = null;
       topicListEl.querySelectorAll('.topic-item, .subtopic-item').forEach(btn => {
@@ -3008,99 +3005,173 @@
       });
       document.getElementById('cv-nav-btn').classList.add('active');
       if (isMobile()) layoutEl.classList.add('showing-content');
-
       contentPanel.innerHTML = '';
-
-      // Mobile back button
       if (isMobile()) {
         const backBtn = document.createElement('button');
         backBtn.id = 'mobile-back-btn';
         backBtn.textContent = '‹ Topics';
         backBtn.addEventListener('click', () => {
-          const cvDoc = contentPanel.querySelector('.cv-doc');
-          if (cvDoc) localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+          if (currentCvData) saveCvData(currentCvData);
           layoutEl.classList.remove('showing-content');
         });
         contentPanel.appendChild(backBtn);
       }
+      const saved = loadCvData();
+      if (!hasCvData(saved)) {
+        currentCvData = null;
+        showCvWelcome();
+      } else {
+        currentCvData = saved;
+        showCvSplit(null, null);
+      }
+    }
 
-      // Toolbar
+    function clearCvContent() {
+      Array.from(contentPanel.children).forEach(el => {
+        if (el.id !== 'mobile-back-btn') el.remove();
+      });
+    }
+
+    function showCvWelcome() {
+      clearCvContent();
       const toolbar = document.createElement('div');
       toolbar.className = 'cv-toolbar';
+      const titleEl = document.createElement('span');
+      titleEl.className = 'cv-toolbar-title';
+      titleEl.textContent = 'CV Editor';
+      toolbar.appendChild(titleEl);
 
-      const toolbarTitle = document.createElement('span');
-      toolbarTitle.className = 'cv-toolbar-title';
-      toolbarTitle.textContent = 'CV Editor';
-
-      // Upload PDF
       const pdfInput = document.createElement('input');
-      pdfInput.type = 'file'; pdfInput.accept = '.pdf,application/pdf';
-      pdfInput.style.display = 'none';
-      const uploadPdfBtn = document.createElement('button');
-      uploadPdfBtn.className = 'cv-action-btn secondary';
-      uploadPdfBtn.textContent = '📄 Upload PDF';
-      uploadPdfBtn.addEventListener('click', () => pdfInput.click());
+      pdfInput.type = 'file'; pdfInput.accept = '.pdf,application/pdf'; pdfInput.style.display = 'none';
+      const uploadBtn = document.createElement('button');
+      uploadBtn.className = 'cv-action-btn secondary';
+      uploadBtn.textContent = '📄 Upload PDF';
+      uploadBtn.addEventListener('click', () => pdfInput.click());
       pdfInput.addEventListener('change', () => {
         const file = pdfInput.files[0]; if (!file) return;
-        showCvPdfSection(pdfContainer, URL.createObjectURL(file), file.name);
+        currentCvData = emptyCvData();
+        saveCvData(currentCvData);
+        showCvSplit(URL.createObjectURL(file), file.name);
         pdfInput.value = '';
       });
 
-      // Save
+      const startBtn = document.createElement('button');
+      startBtn.className = 'cv-action-btn secondary';
+      startBtn.textContent = '+ Start from Scratch';
+      startBtn.addEventListener('click', () => {
+        currentCvData = emptyCvData();
+        saveCvData(currentCvData);
+        showCvSplit(null, null);
+      });
+
+      toolbar.appendChild(pdfInput);
+      toolbar.appendChild(uploadBtn);
+      toolbar.appendChild(startBtn);
+      contentPanel.appendChild(toolbar);
+
+      const welcome = document.createElement('div');
+      welcome.className = 'cv-welcome';
+      const icon = document.createElement('div');
+      icon.className = 'cv-welcome-icon'; icon.textContent = '📄';
+      const title = document.createElement('div');
+      title.className = 'cv-welcome-title'; title.textContent = 'CV Editor';
+      const sub = document.createElement('div');
+      sub.className = 'cv-welcome-subtitle';
+      sub.textContent = 'Upload your existing CV as a PDF for reference, or start from scratch. Edit section-by-section and download in ATS-friendly format.';
+      const hints = document.createElement('ul');
+      hints.style.cssText = 'text-align:left;max-width:340px;font-size:0.84rem;color:#7a6a5a;line-height:1.8;padding-left:18px;margin-top:8px;';
+      ['Upload a PDF to view your existing CV alongside the editor',
+       'Fill in each section — all fields support spell check',
+       'Download as ATS-optimised HTML when ready'].forEach(t => {
+        const li = document.createElement('li'); li.textContent = t; hints.appendChild(li);
+      });
+      welcome.appendChild(icon); welcome.appendChild(title);
+      welcome.appendChild(sub); welcome.appendChild(hints);
+      contentPanel.appendChild(welcome);
+    }
+
+    function showCvSplit(pdfUrl, pdfFilename) {
+      clearCvContent();
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'cv-toolbar';
+      const titleEl = document.createElement('span');
+      titleEl.className = 'cv-toolbar-title'; titleEl.textContent = 'CV Editor';
+      toolbar.appendChild(titleEl);
+
+      const pdfInput2 = document.createElement('input');
+      pdfInput2.type = 'file'; pdfInput2.accept = '.pdf,application/pdf'; pdfInput2.style.display = 'none';
+      const uploadPdfBtn = document.createElement('button');
+      uploadPdfBtn.className = 'cv-action-btn secondary';
+      uploadPdfBtn.textContent = '📄 Upload PDF';
+      uploadPdfBtn.addEventListener('click', () => pdfInput2.click());
+      pdfInput2.addEventListener('change', () => {
+        const file = pdfInput2.files[0]; if (!file) return;
+        const pdfCont = contentPanel.querySelector('.cv-split-left > div');
+        if (pdfCont) refreshPdfPanel(pdfCont, URL.createObjectURL(file), file.name);
+        pdfInput2.value = '';
+      });
+
       const saveBtn = document.createElement('button');
-      saveBtn.className = 'cv-action-btn secondary';
-      saveBtn.textContent = '✓ Save';
+      saveBtn.className = 'cv-action-btn secondary'; saveBtn.textContent = '✓ Save';
       saveBtn.addEventListener('click', () => {
-        localStorage.setItem(CV_STORAGE_KEY, cvDoc.innerHTML);
+        saveCvData(currentCvData);
         saveBtn.textContent = '✓ Saved!';
         setTimeout(() => { saveBtn.textContent = '✓ Save'; }, 1500);
       });
 
-      // Download
       const downloadBtn = document.createElement('button');
-      downloadBtn.className = 'cv-action-btn primary';
-      downloadBtn.textContent = '⬇ Download';
-      downloadBtn.addEventListener('click', () => downloadCv(cvDoc));
+      downloadBtn.className = 'cv-action-btn primary'; downloadBtn.textContent = '⬇ Download ATS';
+      downloadBtn.addEventListener('click', () => downloadAtsCV(currentCvData));
 
-      toolbar.appendChild(pdfInput);
-      toolbar.appendChild(toolbarTitle);
-      toolbar.appendChild(uploadPdfBtn);
-      toolbar.appendChild(saveBtn);
-      toolbar.appendChild(downloadBtn);
+      toolbar.appendChild(pdfInput2); toolbar.appendChild(uploadPdfBtn);
+      toolbar.appendChild(saveBtn); toolbar.appendChild(downloadBtn);
       contentPanel.appendChild(toolbar);
 
-      // PDF reference container (filled when a PDF is uploaded)
-      const pdfContainer = document.createElement('div');
-      contentPanel.appendChild(pdfContainer);
+      const split = document.createElement('div');
+      split.className = 'cv-split';
 
-      // CV document
-      const cvDocWrap = document.createElement('div');
-      cvDocWrap.className = 'cv-doc-wrap';
-      const cvDoc = document.createElement('div');
-      cvDoc.className = 'cv-doc';
-      cvDoc.contentEditable = 'true';
-      cvDoc.spellcheck = true;
-      cvDoc.setAttribute('aria-label', 'CV document editor');
-      cvDoc.innerHTML = localStorage.getItem(CV_STORAGE_KEY) || getCvTemplate();
-      cvDocWrap.appendChild(cvDoc);
-      contentPanel.appendChild(cvDocWrap);
+      const left = document.createElement('div');
+      left.className = 'cv-split-left';
+      const pdfContainer = document.createElement('div');
+      left.appendChild(pdfContainer);
+      if (pdfUrl) refreshPdfPanel(pdfContainer, pdfUrl, pdfFilename);
+      else buildPdfPrompt(pdfContainer);
+
+      const right = document.createElement('div');
+      right.className = 'cv-split-right';
+      buildCvSections(right, currentCvData);
+
+      split.appendChild(left); split.appendChild(right);
+      contentPanel.appendChild(split);
     }
 
-    function showCvPdfSection(container, pdfUrl, filename) {
+    function buildPdfPrompt(container) {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = '.pdf,application/pdf'; fileInput.style.display = 'none';
+      const prompt = document.createElement('div');
+      prompt.className = 'cv-pdf-prompt';
+      prompt.innerHTML = '📄<br><br><strong>Upload PDF Reference</strong><br><span style="font-size:0.78rem">Click to view your existing CV alongside the editor</span>';
+      prompt.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0]; if (!file) return;
+        refreshPdfPanel(container, URL.createObjectURL(file), file.name);
+        fileInput.value = '';
+      });
+      container.appendChild(fileInput);
+      container.appendChild(prompt);
+    }
+
+    function refreshPdfPanel(container, pdfUrl, filename) {
       container.innerHTML = '';
       const box = document.createElement('div');
       box.className = 'cv-pdf-section';
-
       const hd = document.createElement('div');
       hd.className = 'cv-pdf-hd';
-
       const title = document.createElement('span');
-      title.className = 'cv-pdf-title';
-      title.textContent = 'Reference: ' + filename;
-
+      title.className = 'cv-pdf-title'; title.textContent = filename || 'CV Reference';
       const acts = document.createElement('div');
       acts.className = 'html-section-actions';
-
       let visible = true;
       const toggleBtn = document.createElement('button');
       toggleBtn.className = 'icon-btn cancel'; toggleBtn.title = 'Collapse'; toggleBtn.textContent = '▼';
@@ -3110,53 +3181,239 @@
         toggleBtn.textContent = visible ? '▼' : '▶';
         toggleBtn.title = visible ? 'Collapse' : 'Expand';
       });
-
       const removeBtn = document.createElement('button');
       removeBtn.className = 'icon-btn del'; removeBtn.title = 'Remove PDF'; removeBtn.textContent = '−';
-      removeBtn.addEventListener('click', () => { URL.revokeObjectURL(pdfUrl); container.innerHTML = ''; });
-
+      removeBtn.addEventListener('click', () => {
+        URL.revokeObjectURL(pdfUrl);
+        container.innerHTML = '';
+        buildPdfPrompt(container);
+      });
       const frame = document.createElement('iframe');
-      frame.className = 'cv-pdf-frame';
-      frame.src = pdfUrl;
-      frame.title = 'Uploaded CV PDF';
-
-      acts.appendChild(removeBtn);
-      acts.appendChild(toggleBtn);
-      hd.appendChild(title);
-      hd.appendChild(acts);
-      box.appendChild(hd);
-      box.appendChild(frame);
+      frame.className = 'cv-pdf-frame'; frame.src = pdfUrl; frame.title = 'CV Reference';
+      acts.appendChild(removeBtn); acts.appendChild(toggleBtn);
+      hd.appendChild(title); hd.appendChild(acts);
+      box.appendChild(hd); box.appendChild(frame);
       container.appendChild(box);
     }
 
-    function downloadCv(cvDoc) {
-      const content = cvDoc.innerHTML;
-      const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>CV</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Georgia,'Times New Roman',serif;font-size:10.5pt;color:#1a1a1a;line-height:1.55;background:#fff;padding:48px 52px;max-width:800px;margin:0 auto}
-    .cv-name{font-size:22pt;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0891b2;line-height:1.2;margin-bottom:4px}
-    .cv-contact-line{font-size:9pt;color:#555;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:20px}
-    .cv-section{margin-bottom:18px}
-    .cv-section-title{font-size:8.5pt;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#0891b2;border-bottom:1.5px solid #0891b2;padding-bottom:3px;margin-bottom:10px}
-    .cv-entry{margin-bottom:12px}
-    .cv-entry-header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px}
-    .cv-entry-title{font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5pt}
-    .cv-entry-company{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#444;font-size:10pt}
-    .cv-entry-date{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9pt;color:#666;white-space:nowrap;flex-shrink:0}
-    ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:2px}p{margin:4px 0}
-    @media print{body{padding:0}@page{margin:1.5cm}}
-  </style>
-</head>
-<body>${content}</body>
-</html>`;
+    function buildCvSections(container, cvData) {
+      container.appendChild(buildPersonalSection(cvData));
+      container.appendChild(buildSummarySection(cvData));
+      container.appendChild(buildExperienceSection(cvData));
+      container.appendChild(buildEducationSection(cvData));
+      container.appendChild(buildSkillsSection(cvData));
+      container.appendChild(buildCertSection(cvData));
+    }
+
+    function cvField(label, inputEl) {
+      const wrap = document.createElement('div');
+      wrap.className = 'cv-field';
+      const lbl = document.createElement('label');
+      lbl.className = 'cv-field-label'; lbl.textContent = label;
+      wrap.appendChild(lbl); wrap.appendChild(inputEl);
+      return wrap;
+    }
+
+    function cvInput(value, placeholder, onInput) {
+      const inp = document.createElement('input');
+      inp.className = 'cv-field-input'; inp.type = 'text';
+      inp.value = value || ''; inp.placeholder = placeholder || ''; inp.spellcheck = true;
+      inp.addEventListener('input', () => onInput(inp.value));
+      return inp;
+    }
+
+    function cvTextarea(value, placeholder, onInput, rows) {
+      const ta = document.createElement('textarea');
+      ta.className = 'cv-field-textarea';
+      ta.value = value || ''; ta.placeholder = placeholder || ''; ta.spellcheck = true;
+      if (rows) ta.rows = rows;
+      ta.addEventListener('input', () => onInput(ta.value));
+      return ta;
+    }
+
+    function sectionCard(labelText) {
+      const card = document.createElement('div');
+      card.className = 'cv-editor-section';
+      const hd = document.createElement('div');
+      hd.className = 'cv-section-hd';
+      const lbl = document.createElement('span');
+      lbl.className = 'cv-section-label'; lbl.textContent = labelText;
+      hd.appendChild(lbl); card.appendChild(hd);
+      const body = document.createElement('div');
+      body.className = 'cv-section-body'; card.appendChild(body);
+      return { card, body };
+    }
+
+    function buildPersonalSection(cvData) {
+      const { card, body } = sectionCard('Personal Information');
+      const p = cvData.personal;
+      body.appendChild(cvField('Full Name', cvInput(p.name, 'Jane Smith', v => { p.name = v; })));
+      const row1 = document.createElement('div');
+      row1.style.cssText = 'display:flex;gap:8px;';
+      row1.appendChild(cvField('Email', cvInput(p.email, 'jane@example.com', v => { p.email = v; })));
+      row1.appendChild(cvField('Phone', cvInput(p.phone, '+1 234 567 890', v => { p.phone = v; })));
+      body.appendChild(row1);
+      const row2 = document.createElement('div');
+      row2.style.cssText = 'display:flex;gap:8px;';
+      row2.appendChild(cvField('Location', cvInput(p.location, 'City, Country', v => { p.location = v; })));
+      row2.appendChild(cvField('LinkedIn', cvInput(p.linkedin, 'linkedin.com/in/you', v => { p.linkedin = v; })));
+      body.appendChild(row2);
+      return card;
+    }
+
+    function buildSummarySection(cvData) {
+      const { card, body } = sectionCard('Professional Summary');
+      body.appendChild(cvTextarea(cvData.summary,
+        'A brief summary of your professional background and goals...', v => { cvData.summary = v; }, 4));
+      return card;
+    }
+
+    function buildExperienceSection(cvData) {
+      const { card, body } = sectionCard('Experience');
+      function renderExpCards() {
+        body.innerHTML = '';
+        cvData.experience.forEach((exp, i) => {
+          const ec = document.createElement('div');
+          ec.className = 'cv-entry-card';
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'cv-remove-btn'; removeBtn.textContent = '✕ Remove';
+          removeBtn.addEventListener('click', () => { cvData.experience.splice(i, 1); renderExpCards(); });
+          ec.appendChild(removeBtn);
+          const r1 = document.createElement('div'); r1.style.cssText = 'display:flex;gap:8px;';
+          r1.appendChild(cvField('Job Title', cvInput(exp.title, 'Software Engineer', v => { exp.title = v; })));
+          r1.appendChild(cvField('Company', cvInput(exp.company, 'Company Name', v => { exp.company = v; })));
+          ec.appendChild(r1);
+          ec.appendChild(cvField('Location', cvInput(exp.location, 'City, Country', v => { exp.location = v; })));
+          const dr = document.createElement('div'); dr.className = 'cv-date-row';
+          dr.appendChild(cvField('Start', cvInput(exp.start, 'Jan 2022', v => { exp.start = v; })));
+          dr.appendChild(cvField('End', cvInput(exp.end, 'Present', v => { exp.end = v; })));
+          ec.appendChild(dr);
+          ec.appendChild(cvField('Key Achievements / Responsibilities (one per line)',
+            cvTextarea(exp.bullets, '• Led team of 5 engineers...\n• Increased performance by 30%...', v => { exp.bullets = v; }, 5)));
+          body.appendChild(ec);
+        });
+        const addBtn = document.createElement('button');
+        addBtn.className = 'cv-add-btn'; addBtn.textContent = '+ Add Experience';
+        addBtn.addEventListener('click', () => {
+          cvData.experience.push({ title: '', company: '', location: '', start: '', end: '', bullets: '' });
+          renderExpCards();
+        });
+        body.appendChild(addBtn);
+      }
+      renderExpCards();
+      return card;
+    }
+
+    function buildEducationSection(cvData) {
+      const { card, body } = sectionCard('Education');
+      function renderEduCards() {
+        body.innerHTML = '';
+        cvData.education.forEach((edu, i) => {
+          const ec = document.createElement('div');
+          ec.className = 'cv-entry-card';
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'cv-remove-btn'; removeBtn.textContent = '✕ Remove';
+          removeBtn.addEventListener('click', () => { cvData.education.splice(i, 1); renderEduCards(); });
+          ec.appendChild(removeBtn);
+          const r1 = document.createElement('div'); r1.style.cssText = 'display:flex;gap:8px;';
+          r1.appendChild(cvField('Degree', cvInput(edu.degree, 'B.Sc. Computer Science', v => { edu.degree = v; })));
+          r1.appendChild(cvField('School', cvInput(edu.school, 'University Name', v => { edu.school = v; })));
+          ec.appendChild(r1);
+          const dr = document.createElement('div'); dr.className = 'cv-date-row';
+          dr.appendChild(cvField('Start', cvInput(edu.start, '2015', v => { edu.start = v; })));
+          dr.appendChild(cvField('End', cvInput(edu.end, '2019', v => { edu.end = v; })));
+          ec.appendChild(dr);
+          ec.appendChild(cvField('Notes (optional)',
+            cvTextarea(edu.notes, 'GPA, honours, relevant coursework...', v => { edu.notes = v; }, 2)));
+          body.appendChild(ec);
+        });
+        const addBtn = document.createElement('button');
+        addBtn.className = 'cv-add-btn'; addBtn.textContent = '+ Add Education';
+        addBtn.addEventListener('click', () => {
+          cvData.education.push({ degree: '', school: '', start: '', end: '', notes: '' });
+          renderEduCards();
+        });
+        body.appendChild(addBtn);
+      }
+      renderEduCards();
+      return card;
+    }
+
+    function buildSkillsSection(cvData) {
+      const { card, body } = sectionCard('Skills');
+      body.appendChild(cvTextarea(cvData.skills,
+        'Technical: Python, JavaScript, SQL\nTools: Git, Docker, AWS\nLanguages: English (Native)',
+        v => { cvData.skills = v; }, 4));
+      return card;
+    }
+
+    function buildCertSection(cvData) {
+      const { card, body } = sectionCard('Certifications & Achievements');
+      body.appendChild(cvTextarea(cvData.certifications,
+        'AWS Certified Solutions Architect – 2023\nGoogle Professional Data Engineer – 2022',
+        v => { cvData.certifications = v; }, 3));
+      return card;
+    }
+
+    function escHtml(str) {
+      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function downloadAtsCV(cvData) {
+      if (!cvData) return;
+      const p = cvData.personal;
+      const h2 = t => `<h2 style="font-size:10pt;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #000;padding-bottom:2px;margin:16px 0 8px 0;">${t}</h2>\n`;
+      let body = '';
+      if (p.name) body += `<h1 style="font-size:18pt;font-family:Arial,sans-serif;margin:0 0 4px;">${escHtml(p.name)}</h1>\n`;
+      const contacts = [p.email, p.phone, p.location, p.linkedin].filter(Boolean);
+      if (contacts.length) body += `<p style="font-size:9pt;color:#444;margin:0 0 16px;font-family:Arial,sans-serif;">${contacts.map(escHtml).join('  |  ')}</p>\n`;
+      if (cvData.summary) {
+        body += h2('Professional Summary');
+        body += `<p style="margin:0 0 12px;">${escHtml(cvData.summary).replace(/\n/g,'<br>')}</p>\n`;
+      }
+      if (cvData.experience.length) {
+        body += h2('Experience');
+        cvData.experience.forEach(exp => {
+          const loc = exp.location ? ` · ${escHtml(exp.location)}` : '';
+          const dates = [exp.start, exp.end].filter(Boolean).join(' – ');
+          body += `<p style="margin:0 0 2px;"><strong>${escHtml(exp.title)}</strong> · ${escHtml(exp.company)}${loc}</p>\n`;
+          if (dates) body += `<p style="font-size:9pt;color:#555;margin:0 0 4px;">${escHtml(dates)}</p>\n`;
+          if (exp.bullets) {
+            const lines = exp.bullets.split('\n').map(l => l.replace(/^[•\-\*]\s*/,'').trim()).filter(Boolean);
+            if (lines.length) {
+              body += `<ul style="margin:4px 0 12px 18px;padding:0;">\n`;
+              lines.forEach(l => { body += `  <li style="margin-bottom:2px;">${escHtml(l)}</li>\n`; });
+              body += `</ul>\n`;
+            }
+          } else body += `<br>\n`;
+        });
+      }
+      if (cvData.education.length) {
+        body += h2('Education');
+        cvData.education.forEach(edu => {
+          const dates = [edu.start, edu.end].filter(Boolean).join(' – ');
+          body += `<p style="margin:0 0 2px;"><strong>${escHtml(edu.degree)}</strong> · ${escHtml(edu.school)}</p>\n`;
+          if (dates) body += `<p style="font-size:9pt;color:#555;margin:0 0 4px;">${escHtml(dates)}</p>\n`;
+          if (edu.notes) body += `<p style="margin:0 0 12px;">${escHtml(edu.notes)}</p>\n`;
+          else body += `<br>\n`;
+        });
+      }
+      if (cvData.skills) {
+        body += h2('Skills');
+        cvData.skills.split('\n').filter(Boolean).forEach(l => {
+          body += `<p style="margin:0 0 4px;">${escHtml(l)}</p>\n`;
+        });
+      }
+      if (cvData.certifications) {
+        body += h2('Certifications &amp; Achievements');
+        cvData.certifications.split('\n').filter(Boolean).forEach(l => {
+          body += `<p style="margin:0 0 4px;">${escHtml(l)}</p>\n`;
+        });
+      }
+      const html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>${escHtml(p.name || 'CV')}</title>\n  <style>*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#000;line-height:1.45;background:#fff;max-width:740px;margin:0 auto;padding:40px 48px}h1,h2,p,ul,li{margin:0;padding:0}@media print{body{padding:0}@page{margin:1.5cm}}</style>\n</head>\n<body>\n${body}</body>\n</html>`;
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-      a.download = 'CV.html';
+      a.download = (p.name ? p.name.replace(/\s+/g,'_') : 'CV') + '_ATS.html';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
